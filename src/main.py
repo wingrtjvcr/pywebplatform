@@ -8,7 +8,7 @@ from sanic_session import Session,InMemorySessionInterface
 bp = Blueprint(__name__)
 db2 = DBHelper(__name__)
 
-# router define
+# 首页，全件检索
 @bp.route('/')
 async def bp_root(request):
     result = db2.selectByMap('selt1',{})
