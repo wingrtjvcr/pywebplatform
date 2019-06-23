@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <link rel="stylesheet" href="style.css"/>
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+    {% endblock %}
+</head>
+<body>
+<div id="header">父画面 头部</div>
+<div id="content">父画面 content{% block content %}{% endblock %}</div>
+<div id="footer">
+    父画面 底部
+</div>
+</body>
+</html>

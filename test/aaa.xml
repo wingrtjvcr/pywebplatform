@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapper id="Main">
+    <select id="selectuser" tid="selectuser">
+        select * from usrs 
+        where usrname=${usrname} and pwd=${pwd} and usrname=#{usrname}
+        <isNotNull col="usrname">
+           and usrname like  #{usrname}
+        </isNotNull>
+        <isNull col="pwd">
+          and  pwd LIKE #{pwd}
+        </isNull>
+        order by id desc
+    </select>
+    
+    <select id="selectuser222">
+        22222
+    </select>
+
+    <insert id="insertUser">
+        insert into users(id,usrname,pwd) VALUES();
+    </insert>
+
+    <delete id="delUser">
+        delete from users where usrname=${usrname}
+    </delete>
+
+    <update id="updateUser">
+        update users uu set uu.usrname=#{usrname} where uu.id=#{id}
+    </update>
+</mapper>

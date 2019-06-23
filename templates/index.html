@@ -1,0 +1,138 @@
+<!doctype html>
+<!-- <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script> -->
+<!-- <script type="text/javascript" src="js/jquery-1.8.3.js"></script> -->
+<script src="static/js/jquery-1.8.3.js"></script>
+<script src="static/js/common.js"></script>
+<script>
+  function delUser(){
+    _id=$('#txtID').val();
+    _url='../deltest?id=' + _id;
+    $.ajax({
+       url:_url,
+       type: "post",
+       contentType:'application/json;charset=utf-8',
+       dataType:"json",
+       async:false,
+       success: function(data){
+          // alert(data[0].usrname);
+          if(data.Code==999){
+            alert('システムエラー：\n'+data.err);
+            return;
+            }
+          if(data.Table0>0){
+            alert('del success');
+            Refresh();
+          }
+          else
+            alert('del fail')
+       }
+    });
+  }
+function updateUser(){
+  _txtname=$('#txtname').val();
+  _id=$('#txtID').val();
+  _url='../updatetest?id=' + _id+'&name='+_txtname;
+  $.ajax({
+	   url:_url,
+	   type: "post",
+	   contentType:'application/json;charset=utf-8',
+	   dataType:"json",
+     async:false,
+	   success: function(data){
+        // alert(data[0].usrname);
+        if(data.Code==999){
+          alert('システムエラー：\n'+data.err);
+          Refresh();
+          return;
+          }
+        if(data.Table0>0){
+          alert('update success');
+          
+          }
+        else
+          alert('update fail');
+	   }
+	});
+}
+</script>
+
+<div class=page>
+
+  <table border="1" cellpadding="10">
+
+    <tr>
+  
+      <th>id</th>
+  
+      <th>name</th>
+  
+    </tr>
+  
+    {% for item in Table0 %}
+  
+      <tr>
+  
+      <td> {{ item.id }} </td>
+  
+      <td> {{ item.name }}  </td> 
+  
+      </tr>
+  
+    {% endfor %}
+  
+    </table>
+
+    <table border="1" cellpadding="10">
+
+        <tr>
+      
+          <th>usrname</th>
+      
+          <th>email</th>
+
+          <th>joindate</th>
+      
+        </tr>
+      
+        {% for item in Table1 %}
+      
+          <tr>
+      
+          <td> {{ item.usrname }} </td>
+      
+          <td> {{ item.email }}  </td> 
+      
+          <td> {{ item.joindate }}  </td> 
+      
+          </tr>
+      
+        {% endfor %}
+      
+        </table>
+
+  <br>
+  <br>
+  <br>
+  ログイン成功！
+  <br>
+  <br>
+  ここはホムページです！
+  <br>
+  <br>
+  <input type="text" id="txtID" /><br>
+  <input type="button" onclick="delUser()" value="削除User" />
+  <br>
+  <br>
+
+
+  <input type="text" id="txtname" /><br>
+  <input type="button" onclick="updateUser()" value="User名を更新" />
+
+  <br>
+  <br>
+  <br>
+
+
+</div>
+
+# 

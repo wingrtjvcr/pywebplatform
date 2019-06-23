@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapper id="Main">
+    <select id="selectuser">
+        select * from usrs 
+        where usrname=${usrname} and pwd=${pwd} and usrname=#{usrname}
+        <isNotNull key="usrname">
+           and usrname like  #{usrname}
+        </isNotNull>
+        <isNull key="pwd">
+          and  pwd LIKE #{pwd}
+        </isNull>
+        order by id desc
+    </select>
+    
+    <select id="selt1">
+        select * from t1 where 1=1
+        <isNotNull key="id">
+           and id = #{id}
+        </isNotNull>
+        <isNotNull key="name">
+           and name like '%%${name}%%' 
+        </isNotNull>
+        order by id desc;
+        select * from users ;
+    </select>
+
+    <delete id="delUser">
+        delete from t1 where t1.id=#{delid}
+    </delete>
+
+    <update id="updateUser">
+        update t1 set name=#{name} where id=#{updateid}
+    </update>
+</mapper>

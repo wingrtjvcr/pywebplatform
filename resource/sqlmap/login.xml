@@ -1,0 +1,4 @@
+<select id="">
+select * from aaa where  = #{}
+select * from users where usrname=g and pwd='%s'"%(usrname,pwd)
+</select>
