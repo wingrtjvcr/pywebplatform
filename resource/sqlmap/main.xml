@@ -11,6 +11,13 @@
         </isNull>
         order by id desc
     </select>
+    <select id="selectQCDProject">
+        SELECT cv.`value`,pj.* FROM projects pj
+        INNER JOIN custom_values cv
+        ON pj.id=cv.customized_id
+        AND cv.custom_field_id=2
+        and cv.`value`!=''
+    </select>
     
     <select id="selt1">
         select * from t1 where 1=1
