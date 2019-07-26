@@ -16,7 +16,7 @@ async def bp_root(request):
     # db2.selmssql2()
     
     # result = db2.selectByMap('selectQCDProject','conn_rm')
-    db2.selmssql2()
+    # db2.selmssql2()
     result = db2.selectByMap('selt1')
     return com.bindHtml('index.html',result)
 
