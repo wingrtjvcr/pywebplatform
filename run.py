@@ -3,6 +3,7 @@ from sanic.response import json,text
 from src.main import bp
 from src.login import bp_login
 from src.excel import bp_excel
+from src.rm import bp_rm
 from sanic.handlers import ErrorHandler
 from resource import common as com
 
@@ -20,6 +21,7 @@ app.error_handler = CustomErrorHandler()
 app.static('/static', './static')
 
 app.blueprint(bp)
+app.blueprint(bp_rm)
 app.blueprint(bp_login)
 app.blueprint(bp_excel)
 

@@ -19,6 +19,11 @@ async def bp_root(request):
     # db2.selmssql2()
     result = db2.selectByMap('selt1')
     return com.bindHtml('index.html',result)
+    
+ # RM 首页
+@bp.route('/rmindex')
+async def rmindex(request):
+    return com.bindHtml('menu_main.html',[])   
 
 @bp.route('/testdb')
 async def bp_testdb(request):

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tre-Redmine</title>
+    <script src="static/js/jquery-ui-1.12.1/external/jquery/jquery-3.3.1.min.js"></script>
+    <!-- <script src="http://www.jq22.com/jquery/2.1.1/jquery.min.js"></script> -->
+    <script src="static/js/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script src="static/js/select2/select2.min.js"></script>
+    <script src="static/tools/datetimepicker/bootstrap-datetimepicker.js"></script>
+    <script src="static/tools/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+    <script src="static/tools/datetimepicker/bootstrap-datetimepicker.ja.js"></script>
+    <script src="static/js/ui.min.js"></script>
+
+    <link rel="stylesheet" href="static/js/bootstrap-3.3.7-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="static/js/select2/select2.min.css" />
+    <link rel="stylesheet" href="static/tools/proressbar/css/style.css" />
+    <link rel="stylesheet" href="static/tools/datetimepicker/bootstrap-datetimepicker.min.css" />
+    <link rel="stylesheet" href="static/tools/radiobox/style.css" />
+    <link rel="stylesheet" href="static/css/ui.min.css" />
+
+
+    <script>
+      var dataIssue;
+      var dataUser;
+
+
+
+	$(function() {
+
+    $(".js-characters-change").blur(function(){
+        charactersChange($(this));
+    });
+    charactersChange = function(ele){
+        var val = ele.val();
+        var han = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g,function(s){return String.fromCharCode(s.charCodeAt(0)-0xFEE0)});
+
+        if(val.match(/[Ａ-Ｚａ-ｚ０-９]/g)){
+          $(ele).val(han);
+          // $('#sh_time').html(Number($('#sh_time').text())+Number(ele.val()));
+        }
+        else if(val.match(/[0-9]/g)){
+          // $('#sh_time').html(Number($('#sh_time').text())+Number(ele.val()));
+        }
+        else{
+          ele.val('');
+      }
+    }
+
+  //   _url='../getEmployeeInfo?name='+'limingze';
+  //   $.ajax({
+  //           type: 'get',
+  //           url: _url,
+  //           success: function(data){ 
+  //             dataUser=data;
+  //           }
+  //   });
+
+  // 初期状態はチケットありで
+  $('#ticketsel1').trigger("click");
+
+  conshow();
+  // 登録区分クリックのイベント
+  $('input[name="ticketsel"]').click(function(){
+    // 画面各コントローラーの表示非表示
+    conshow();
+    // チケットなしかつselect_pjに課題データなしの場合は、課題データを読み込む
+    if(!ischk() && $("#select_pj option").length<=1){
+      ui.loading();
+
+        _url='../getProject?loginid='+loginid;
+        $.ajax({
+                type: 'get',
+                url: _url,
+                success: function(data){ 
+                var dataProject=data.result;
+                var optionsProject = new Array();
+                //  チケットのデータを入れる
+                //  optionsProject.push({'id':'0','text':' - 指定なし - '});
+                $(dataProject).each(function (i, o) {
+                  optionsProject.push({
+                        id: o.project_id+'_'+o.work_type_id,
+                        text: o.project_cd+'_'+o.budget_project_name_half
+                    });
+                });
+                $("#select_pj").select2({
+                    data: optionsProject
+                });
+                ui.loading('hide');
+
+              }
+        });
+      }
+
+  });
+
+  $('#select_pj').select2();
+	$('#select_wt').select2();
+	$('#select_issue').select2();
+
+  var loginid='limingze';
+  ui.loading();
+    _url='../getIssueList?loginid='+loginid;
+    $.ajax({
+            type: 'get',
+            url: _url,
+            success: function(data){ 
+             dataIssue=data;
+             var optionsIssue = new Array();
+             var optionsProject = new Array();
+            //  //  チケットのデータを入れる
+            //  $(data).each(function (i, o) {
+            //   optionsIssue.push({
+            //          id: o.id,
+            //          text: '#'+o.id+' '+o.subject+' '+o.status.name
+            //      });
+            //  });
+            //  $("#select_issue").select2({
+            //      data: optionsIssue
+            //  })
+
+            $("#select_issue").append("<option pj='' value='0'>#0:無予定　ー　900000001_(間接)間接</option>")
+             for (var i=0;i<data.length;i++){
+                    var id= data[i].id;
+                    var text= '#'+data[i].id+':'+data[i].subject+' '+data[i].status.name
+                            +'　ー　'+data[i].project.name;
+                    $("#select_issue").append("<option pj='"+data[i].project.name+"' value='" + id + "'>" +text + "</option>");
+              }
+
+              ui.loading('hide');
+          }
+    });
+
+ 
+
+
+
+// 		var uname = parent.$(".user.active").html();
+// 		var pjid_worktypei = "";
+// 		var wk_id = "";
+// 		var issue_id ="";
+		$("#select_issue").on("change",function(e){
+      console.log(e);
+      // var sel=dataIssue.filter(function (e) { return e.id == $("#select_issue").val(); });
+      // $('.radio').removeAttr('checked');
+      // var pval='p'+sel[0].done_ratio;
+      // $('#'+pval).attr('checked', 'true');
+          var issueid=$("#select_issue").val();
+          $('#eh_time').html('');
+          $('#sh_time').html('');
+          checkp('p0');
+
+          if($('#select_issue').val()=='0'){
+            $('#eh_time').html('');
+            $('#sh_time').html('');
+            $('#lab_time').html('');
+            return;
+          }
+          
+          _url='../getIssue?issueid='+issueid;
+          $.ajax({
+                type: 'get',
+                url: _url,
+                success: function(data){ 
+                  var issue=data.issue;
+
+                  // 進捗率
+                  done_ratio=issue['done_ratio'];
+                  var pid='p'+done_ratio;
+                  checkp(pid);
+
+                  // 消費時間
+                  total_spent_hours=issue['total_spent_hours'];
+                  // 推定時間
+                  total_estimated_hours=issue['total_estimated_hours'];
+
+                  var eh;
+
+                  $('#sh_time').html(total_spent_hours);
+                  if(total_estimated_hours==undefined){
+                    eh="";
+                    $('#lab_time').html('（消費時間）');
+                  }else{
+                    eh=total_estimated_hours;
+                    $('#eh_time').html('/'+eh);
+                    $('#lab_time').html('（消費時間/推定時間）');
+                  }
+
+
+              }
+        });
+        
+		});
+
+		$("#select_pj").on("change",function(e){
+　　			console.log(e);
+        var selpj=$("#select_pj").val();
+        var pjcd=selpj.split('_')[0];
+        var wt=selpj.split('_')[1];
+        _url='../getWorkType?wt='+wt;
+        $.ajax({
+              type: 'get',
+              url: _url,
+              success: function(data){
+                $("#select_wt").empty();
+                $("#select_wt").select2("val", ""); 
+                var options = new Array();
+                data=data.result;
+                $(data).each(function (i, o) {
+                  options.push({
+                        id: o.work_id,
+                        text: o.work_cd+'_'+o.work_name
+                    });
+                });
+                $("#select_wt").select2({
+                    data: options
+                })
+
+              }
+
+        	});
+		});
+
+$("#date").datetimepicker({
+  //设置语言 中文(需引入语言包)
+  language:'ja',
+  //选择日期后，不会再跳转去选择时分秒 
+  minView:'month',
+  //选择日期后，文本框显示的日期格式 
+  format:'yyyy-mm-dd',
+  //选择后自动关闭
+  autoclose:true,
+  //显示周 周数据为TRIAL专有周, 周数据范围 2016-01-03 ~ 2021-03-31, 不在范围内此列为空白
+  weekShow:true
+});
+$("#date").datetimepicker("setDate", new Date());
+
+$("input[type=radio]").click(function(){
+  var p=$(this).next();
+  checkp(p.attr('for'));
+})
+
+  })
+
+  
+// チケットありなし
+function ischk(){
+      // チケットありなし
+      return $("#ticketsel1").is(":checked");
+}
+// チェックにより進捗率を変更
+function checkp(pid){
+  $('#'+pid).attr("checked", true);
+  $('#prog-bar').attr('class','');
+  $('#prog-bar').addClass('progress-bar');
+  $('#prog-bar').addClass(pid);
+}
+
+// 画面各コントローラーの表示非表示
+function conshow(){
+    
+    $('#inputmemo').val('');
+    $('#inputtime').val('');
+    $('#sh_time').html('');
+    $('#eh_time').html('');
+    $('#lab_time').html('');
+    // チケットありの場合
+    if(ischk()){
+        $('#tr_pj').hide();
+        $('#tr_date').hide();
+        $('#tr_wt').hide();
+
+        $('#tr_issue').show();
+        $('#tr_prog').show();
+    }else{
+        $('#tr_issue').hide();
+        $('#tr_prog').hide();
+
+        $('#tr_pj').show();
+        $('#tr_date').show();
+        $('#tr_wt').show();
+    }
+  }
+
+
+
+
+// 		$("#select_pj").on("select2:select",function(e){
+
+// 			console.log(e);
+// 			pjid_worktype = e.params.data.id;
+// 			pjcd_pjname = e.params.data.text;
+
+// 			$.ajax({
+//                         	type: 'POST',
+//                         	url: 'qcd_worktype',
+//                         	data: { worktype : pjid_worktype },
+//                         	success: function(result){ $("#select_wt").html(result); }
+//                 	});
+
+// 			$.ajax({
+//                                 type: 'POST',
+//                                 url: 'qcd_issue',
+//                                 data: { pjcd : pjcd_pjname },
+//                                 success: function(result){ $("#select_issue").html(result); }
+//                         });
+
+// 		});
+
+// 		$("#select_wt").on("select2:select",function(e){
+// 			console.log(e.params.data.id);
+// 			wk_id=e.params.data.id;
+// 		});
+
+		// $("#select_issue").on("select2:select",function(e){
+    //                     console.log(e.params.data.id);
+    //                     issue_id=e.params.data.id;
+    //             });
+
+
+		$("#btn_workdata").click(function(){
+
+			var wk_memo=$("#inputmemo").val();
+			var wk_hour=$("#inputtime").val();
+
+//			if(issue_id == ""){
+//
+//				alert('No Ticket, No Work!!!!!!!! チケット入力してください。');
+//				return false;
+//			}
+
+      var done=$('input[name="progress"]:checked').val();
+
+      if(uname == "" || pjid_worktype == "" || wk_id == "" || wk_memo == "" ||wk_hour == ""){
+              alert('正しく入力してください');
+              return false;
+      };
+
+			$.ajax({
+                        	type: 'POST',
+				contentType:'application/x-www-form-urlencoded; charset=UTF-8',
+                        	url: 'qcd_insert',
+                        	data: { uname : uname , pjid : pjid_worktype , workid : wk_id , memo : wk_memo , manhour : wk_hour ,issueid : issue_id },
+                        	success: function(resjson){ var obj = eval('('+resjson+')'); if(obj.result=="OK"){alert('登録成功しました。'); window.location.reload();  }else{alert('登録失敗しました。');} },
+				error: function(jqXHR, textStatus, errorThrown) {alert('ERROR');}
+                	});
+
+
+
+		});
+
+// 		$.ajax({
+//   			type: 'POST',
+//   			url: 'workdata',
+//   			data: { uname : uname },
+//   			success: function(result){ $("#home").html(result); }
+// 		});
+
+// 		$.ajax({
+//                         type: 'POST',
+//                         url: 'worktodo',
+//                         data: { uname : uname },
+//                         success: function(result){ $("#todo").html(result); }
+//                 });
+
+//     $.ajax({
+//             type: 'POST',
+//             url: 'qcd_projects',
+//             data: { uname : uname },
+//             success: function(result){ $("#select_pj").html(result); }
+//     });
+
+
+  
+    </script>
+  </head>
+  <body>
+      <div id="page-loader" class="fade in"><span class="spinner"></span></div>
+    <ul id="myTab" class="nav nav-tabs">
+      <li>
+        <a href="#home" data-toggle="tab">近況</a>
+      </li>
+      <li>
+        <a href="#todo" data-toggle="tab">Todo</a>
+      </li>
+      <li class="active">
+        <a href="#qcd" data-toggle="tab">QCD</a>
+      </li>
+      <li>
+        <a href="#mgt" data-toggle="tab">Management</a>
+      </li>
+      <li>
+        <a href="#edu" data-toggle="tab">Edu</a>
+      </li>
+      <li>
+        <a href="#release" data-toggle="tab">Release</a>
+      </li>
+      <li>
+        <a href="#shi" data-toggle="tab">Link</a>
+      </li>
+      <li class="dropdown">
+        <a href="#" id="myTabDrop1" class="dropdown-toggle" data-toggle="dropdown">Other
+          <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop1">
+          <li>
+            <a href="#RedmineTool" tabindex="-1" data-toggle="tab">RedmineTool</a>
+          </li>
+          <li>
+            <a href="#DevTool" tabindex="-1" data-toggle="tab">DevTool</a>
+          </li>
+          <li>
+            <a href="#PJMTool" tabindex="-1" data-toggle="tab">PJMTool</a>
+          </li>
+          <li>
+            <a href="#Knowledge" tabindex="-1" data-toggle="tab">Knowledge</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <div id="myTabContent" class="tab-content" style="padding:10px">
+      <div class="tab-pane fade" id="home">
+        <!-- <p class="text-center" style="margin-top: 100px">Loading...</p> -->
+      </div>
+      <div class="tab-pane fade" id="edu">
+        <iframe src="https://calendar.google.com/calendar/b/1/embed?title=%E6%95%99%E8%82%B2%E3%82%AB%E3%83%AC%E3%83%B3%E3%83%80%E3%83%BC&amp;showPrint=0&amp;showTabs=0&amp;showCalendars=0&amp;height=600&amp;wkst=2&amp;hl=ja&amp;bgcolor=%23FFFFFF&amp;src=chinakyouiku%40gmail.com&amp;color=%232952A3&amp;ctz=Asia%2FShanghai" style="border-width:0" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
+      </div>
+      <div class="tab-pane fade" id="release">
+        <iframe src="https://calendar.google.com/calendar/embed?src=vs1g2ujb7p1r456b62qs834gcc%40group.calendar.google.com&ctz=Asia%2FShanghai" style="border-width:0" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
+      </div>
+      <div class="tab-pane fade in active" id="qcd">
+        <div class="form-horizontal" style="width:95%">
+          <div class="form-group">
+            <label for="inputproject" class="col-xs-3 control-label">登録区分</label>
+            <div class="col-xs-8">
+              <div class="label_box">
+                <label>
+                        <input type="radio" name="ticketsel" id='ticketsel1'>
+                        <div style="cursor:pointer;">チケットあり</div>
+                 </label>
+                <label>
+                        <input type="radio" name="ticketsel" id='ticketsel2'>
+                        <div style="cursor:pointer;">チケットなし</div>
+                </label>
+            </div>
+            </div>
+          </div>          
+          <div class="form-group" id='tr_date'>
+            <label for="inputproject" class="col-xs-3 control-label">日付</label>
+            <div class="col-xs-8">
+              <input id="date" type="text" class="form-control" readonly size="16">
+            </div>
+          </div>
+          <div class="form-group" id='tr_pj'>
+            <label for="inputproject" class="col-xs-3 control-label">課題</label>
+            <div class="col-xs-8">
+              <select class="js-example-basic-single form-control" id="select_pj" name="states[]" style="width: 100%">
+                <option value=""></option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id='tr_issue'>
+            <label for="inputissue" class="col-xs-3 control-label">チケット</label>
+            <div class="col-xs-8">
+              <select class="js-example-basic-single form-control" id="select_issue" style="width: 100%">
+                <option value=""></option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id='tr_prog'>
+            <label for="inputprs" class="col-xs-3 control-label">進捗</label>
+            <div class="col-xs-8">
+              <!-- <select class="js-example-basic-single form-control" id="select_issue" style="width: 100%">
+                <option value=""></option>
+              </select> -->
+              <section class="containerpror">
+                <div class="progress-number">
+                <input type="radio" class="radio" name="progress" value="0" id="p0" checked>
+                <label for="p0" class="labelpror" style="flex: 0 0 0.1%;">0%</label>
+                <input type="radio" class="radio" name="progress" value="10" id="p10" >
+                <label for="p10" class="labelpror" >10%</label>
+                <input type="radio" class="radio" name="progress" value="20" id="p20" >
+                <label for="p20" class="labelpror">20%</label>
+                <input type="radio" class="radio" name="progress" value="30" id="p30" >
+                <label for="p30" class="labelpror" >30%</label>
+                <input type="radio" class="radio" name="progress" value="40" id="p40" >
+                <label for="p40" class="labelpror" >40%</label>
+                <input type="radio" class="radio" name="progress" value="50" id="p50" >
+                <label for="p50" class="labelpror" >50%</label>
+                <input type="radio" class="radio" name="progress" value="60" id="p60" >
+                <label for="p60" class="labelpror" >60%</label>
+                <input type="radio" class="radio" name="progress" value="70" id="p70" >
+                <label for="p70" class="labelpror" >70%</label>
+                <input type="radio" class="radio" name="progress" value="80" id="p80" >
+                <label for="p80" class="labelpror" >80%</label>
+                <input type="radio" class="radio" name="progress" value="90" id="p90" >
+                <label for="p90" class="labelpror" >90%</label>
+                <input type="radio" class="radio" name="progress" value="100" id="p100" >
+                <label for="p100" class="labelpror" >100%</label>
+              </div>
+                <div class="progress">
+                  <div id='prog-bar' class="progress-bar"></div>
+                </div>
+              </section>
+              <!-- <input type="text" class="form-control" placeholder="メモ" id="inputprs"> -->
+             
+            </div>
+          </div>
+          <div class="form-group" id="tr_wt">
+            <label for="inputworktype" class="col-xs-3 control-label">作業</label>
+            <div class="col-xs-8">
+              <select class="js-example-basic-single form-control" id="select_wt" style="width: 100%">
+                <option value=""></option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputmemo" class="col-xs-3 control-label">コメント</label>
+            <div class="col-xs-8">
+              <input type="text" class="form-control" placeholder="コメント" id="inputmemo">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputtime" class="col-xs-3 control-label">時間(Hour)</label>
+            <div class="col-xs-1">
+              <input type="text" class="form-control js-characters-change" placeholder="" id="inputtime" >
+
+              <!-- <span>消費時間：</span><span id="sh_time"></span>
+              <span>　推定時間：</span><span id="eh_time"></span> -->
+            </div>
+            <label id="sh_time"></label><label id="eh_time"></label>
+            <label id="lab_time"class="control-label"></label>
+          </div>
+          <div class="form-group">
+            <div class="col-xs-offset-3 col-xs-8">
+              <button class="btn btn-primary" id="btn_workdata">登 録</button>
+            </div>
+          </div>
+
+<!-- 
+          <div class="form-group">
+              <div class="col-xs-offset-3 col-xs-8">
+                <table class="table table-hover" style="border: 1px solid #ccc;">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>Email地址</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>1001</td>
+                <td>张三</td>
+                <td>zhangsan@trechina.com</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>1002</td>
+                <td>李四</td>
+                <td>lisi@trechina.com</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>1003</td>
+                <td>王五</td>
+                <td>wangwu@trechina.com</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>1004</td>
+                <td>赵六</td>
+                <td>zhaoliu@trechina.com</td>
+              </tr>
+            </tbody>
+          </table>
+              </div>
+            </div> -->
+
+        
+        </div>
+
+
+      </div>
+      <div class="tab-pane fade" id="mgt">
+
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading"><h4 class="list-group-item-heading">リソース管理</h4></div>
+  <div class="panel-body">
+    <p>TRE全体のリソース管理用のツール集</p>
+  </div>
+
+            <div class="list-group">
+              <a href="http://10.100.1.99/QCD/QCD_CHECK.CGI" target="_blank" class="list-group-item">
+                <h4 class="list-group-item-heading">要員別月間負荷(TRE部署)</h4>
+                <p class="list-group-item-text">QCDに登録されてる見積要員別月間工数情報より集計したレポートになります。</p>
+              </a>
+              <a href="http://10.100.1.99/QCD/QCD_CHECK_SUM.CGI" target="_blank" class="list-group-item">
+                <h4 class="list-group-item-heading">部署別月間負荷(TRE部署)</h4>
+                <p class="list-group-item-text">QCDに登録されてる見積要員別月間工数情報より集計したレポートになります。</p>
+              </a>
+              <a href="http://10.100.1.99/QCD/QCD_CHECK_TREC.CGI" target="_blank" class="list-group-item">
+                <h4 class="list-group-item-heading">TREChina要員別月間負荷状況</h4>
+                <p class="list-group-item-text">QCDに登録されてる見積要員別月間工数情報より集計したレポートになります。<br />集計単位はチャイナ側の開発チーム単位です。</p>
+              </a>
+
+	      <a href="/cgi-bin/resource" target="_blank" class="list-group-item">
+                <h4 class="list-group-item-heading">TREChina要員別週間負荷状況</h4>
+                <p class="list-group-item-text">Redmineに登録されてるチケット予定より集計したレポートになります。</p>
+              </a>
+
+            </div>
+
+  </div>
+
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading"><h4 class="list-group-item-heading">プロジェクト管理PDCR</h4></div>
+  <div class="panel-body">
+    <p>プロジェクト推進状況のPDCRレポート</p>
+  </div>
+
+            <div class="list-group">
+              <a href="/cgi-bin/projects" target="_blank" class="list-group-item">
+                <h4 class="list-group-item-heading">課題別推進状況一覧</h4>
+                <p class="list-group-item-text">Redmine上管理しているプロジェクトの情報のまとめレポートです。続けて改善する予定。</p>
+              </a>
+	    </div>
+
+  </div>
+
+
+
+
+      </div>
+      <div class="tab-pane fade" id="shi">
+        <ul>
+          <li>
+            <a href="http://redmine.trechina.cn/projects/personalgoal201801/issues?query_id=64" class="external" target="_blank">個人目標管理</a>
+            <img src="http://www.pvhc.net/img1/wmdxhwvvvzadyfetxqda.png" style="width:45px;" alt="" />
+          </li>
+          <li>
+            <a href="http://redmine.trechina.cn/projects/weeklyreport2018/issues?query_id=86" class="external" target="_blank">週報管理(採点中)</a>
+            <img src="http://www.pvhc.net/img1/wmdxhwvvvzadyfetxqda.png" style="width:45px;" alt="" />
+          </li>
+          <li>
+            <a href="http://redmine.trechina.cn/projects/trecmanage/wiki" class="external" target="_blank">週報管理(マニュアル)</a>
+            <img src="http://www.pvhc.net/img1/wmdxhwvvvzadyfetxqda.png" style="width:45px;" alt="" />
+          </li>
+          <li>
+            <a href="http://redmine.trechina.cn/projects/businesstrip2018/issues?per_page=100&#38;query_id=62" class="external" target="_blank">出張管理[煙台]</a>
+          </li>
+        </ul>
+        <ul>
+          <li>
+            <a class="wiki-page" href="/projects/ytke/wiki/%E3%82%BE%E3%83%BC%E3%83%B3%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88" target="_blank">ゾーンマネジメント</a>
+          </li>
+          <li>
+            <a class="wiki-page" href="/projects/redminegit/wiki/TRIAL%E3%81%AEAI" target="_blank">TRIALのAI</a>
+          </li>
+          <li>
+            <a href="http://redmine.trechina.cn/projects/ito5managepublic/boards" class="external" target="_blank">ブログ</a>
+            <img src="http://www.pvhc.net/img1/wmdxhwvvvzadyfetxqda.png" style="width:45px;" alt="" />
+          </li>
+        </ul>
+      </div>
+      <div class="tab-pane fade" id="todo"></div>
+      <div class="tab-pane fade" id="RedmineTool">
+        <ul>
+          <li>
+            <a class="wiki-page" href="/projects/redminegit/wiki/Redmine_App_for_iPhone__Android" target="_blank">Redmine App for iPhone / Android</a>
+          </li>
+          <li>
+            <a class="wiki-page" href="/projects/redminegit/wiki/Redmine%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB" target="_blank">Redmineマニュアル</a>
+          </li>
+        </ul>
+      </div>
+      <div class="tab-pane fade" id="Knowledge">
+        <li>
+          <a class="wiki-page" href="/projects/treyantai/wiki" target="_blank">煙台拠点運営</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="/projects/quality/wiki/" target="_blank">品質仕組</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="/projects/crm/wiki/" target="_blank">CRM・PPM・TFS</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="/projects/pacer/wiki/" target="_blank">Pacer</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="/projects/tcloud/wiki/" target="_blank">TCloud</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="/projects/trialai/wiki/" target="_blank">AI</a>
+        </li>
+      </div>
+      <div class="tab-pane fade" id="DevTool">
+        <li>
+          <a class="wiki-page" href="/projects/technicalstudy/wiki/JAVA基盤ドキュメント" target="_blank">Java基盤ドキュメント</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="/projects/technicalstudy/wiki/SMART開発ガイドライン" target="_blank">SMART開発ガイドライン</a>
+        </li>
+      </div>
+      <div class="tab-pane fade" id="PJMTool">
+        <li>
+          <a class="wiki-page" href="/projects/pmo/wiki" target="_blank">プロジェクト管理者の道具箱</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="/cgi-bin/resource" target="_blank">人員週別リソース状況(Redmine)</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="http://10.100.1.99/QCD/QCD_CHECK.CGI" target="_blank">QCD人員月別負荷状況(TREJ部署)</a>
+        </li>
+        <li>
+          <a class="wiki-page" href="http://10.100.1.99/QCD/QCD_CHECK_TREC.CGI" target="_blank">QCD人員月別負荷状況(TREC部署)</a>
+        </li>
+        <br />
+        <li>
+          <a href="http://redmine.trechina.cn/issues/imports/new" class="external" target="_blank">チケット一括登録</a>
+        </li>
+        <li>
+          <a href="" class="external" target="_blank">スケジュール全体調整(開発中)</a>
+        </li>
+        <br />
+        <li>
+          <a href="http://redmine.trechina.cn/cgi-bin/projects" class="external" target="_blank">プロジェクト一覧</a>
+        </li>
+        <li>
+          <a href="http://redmine.trechina.cn/cgi-bin/users" class="external" target="_blank">ユーザー一覧</a>
+        </li>
+      </div>
+    </div>
+  </body>
+</html>

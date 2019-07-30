@@ -4,6 +4,7 @@ from io import BytesIO
 from sanic.response import json, text, html,raw
 from jinja2 import Environment, PackageLoader, FileSystemLoader
 import xlwt
+import requests,json
 
 # env = Environment(loader=PackageLoader('src.my_blueprint', 'templates'))
 env = Environment(loader=FileSystemLoader('./templates'))
@@ -26,6 +27,16 @@ def bindHtml(*args):
     template = env.get_template(thtml)
     content = template.render(data)
     return html(content)
+
+def getWSdata(url):
+    r=requests.get(url)
+    response_dict=r.json()
+    # repo_dicts=response_dict['users']
+    return response_dict
+
+def postWSdata(url,pars):
+    r=requests.post(url,json.dumps(pars))
+    return r.json()
 
 def format_excel_style():
     # border
