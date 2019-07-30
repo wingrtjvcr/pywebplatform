@@ -9,12 +9,19 @@ import requests,json
 # env = Environment(loader=PackageLoader('src.my_blueprint', 'templates'))
 env = Environment(loader=FileSystemLoader('./templates'))
 
+# description:  sysconfを取得
+# parameters:   sec:conf名 key:confのKey    例：getConfig('conn_default','database')
+# return:       keyのvalueを返還
 def getConfig(sec, key):
     conf = configparser.ConfigParser()
     path = os.path.split(os.path.realpath(__file__))[0] + '/sys.conf'
     conf.read(path)
     return conf.get(sec, key)
 
+# description:  html画面に移行する
+# parameters:   ①パラメーター1つ：そのまま指定された画面に移行　例：bindHtml('index.html')
+#               ②パラメーター2つ：指定された画面にjsonデータをバインドする  例：bindHtml('index.html',jsondata)
+# return:       なし
 def bindHtml(*args):
     thtml = ''
     data = {}
@@ -28,16 +35,25 @@ def bindHtml(*args):
     content = template.render(data)
     return html(content)
 
+# description:  WebAPIのデータを取得する（Get）
+# parameters:   url：取得先のURL　例：getWSdata('10.10.10.10/api')
+# return:       取得データ
 def getWSdata(url):
     r=requests.get(url)
     response_dict=r.json()
     # repo_dicts=response_dict['users']
     return response_dict
 
+# description:  WebAPIのデータを取得する（Post）
+# parameters:   url：取得先のURL　例：getWSdata('10.10.10.10/api')
+# return:       取得データ
 def postWSdata(url,pars):
     r=requests.post(url,json.dumps(pars))
     return r.json()
 
+# description:  Excelのスタイルを設定する
+# parameters:   なし
+# return:       style:タイトル部 style1:データ部スキン style2:警告部スキン
 def format_excel_style():
     # border
     borders = xlwt.Borders()
@@ -82,6 +98,11 @@ def format_excel_style():
     style2.pattern = pattern2
     return style, style1, style2
 
+# description:  Excelを作成し、ダウンロードする
+# parameters:   ①strJson：ExcelでダウンロードしとうとしたJsonデータ　例：jsonToXls(jsondata)
+#               ②パラメーター２つ：Jsonデータとファイル名  例：jsonToXls(jsondata,'myfilename')
+#               ③パラメーター２つ：Jsonデータ、ファイル名、シート名  例：jsonToXls(jsondata,'myfilename','mysheetname')
+# return:       Excelファイル
 def jsonToXls(strJson,*filePara):
     dFileName = "DownLoadFile"
     dSheetName = "Sheet1"
@@ -119,16 +140,3 @@ def jsonToXls(strJson,*filePara):
     wb.save(output)
     output.seek(0)
     return raw(output.getvalue(),headers={'Content-Disposition':'attachment;filename='+dFileName},content_type='application/vnd.ms-excel')
-
-
-# def bindHtml(*args):
-#     thtml = ''
-#     result = {}
-#     if len(args) > 0 :
-#         thtml = args[0]
-#     if len(args) > 1 :
-#         result = args[1]
-#     template = env.get_template(thtml)
-#     content = template.render(result)
-#     return html(content)
-# template.render({'knights': 'that say nih'})
