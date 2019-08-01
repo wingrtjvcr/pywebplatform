@@ -15,6 +15,16 @@ class DBHelper:
     def __init__(self,mapname):
         self.mapname = mapname[mapname.rfind('.')+1:]
 
+    # description:  DBへの接続Connectを取得
+    # parameters:   ①パラメーターなし：[conn_default]に書かれた情報でDBに接続　
+    #               ②パラメーター1つ：指定するConf名でDBに接続 
+    #               ※ Keyの説明 
+    #               dbtype:サポートされたDB種類　----　pgsql:PostgreSQL　mysql:MySQL
+    #               database:接続先のDB名 
+    #               host:接続先のIPorHost
+    #               user:アカウント 
+    #               password:パスワード 
+    # return:       接続済みのConnect
     def __conn(self,*args):
         if len(args) == 0:
             db = PostgresqlDatabase(database=getConfig('conn_default','database'),
@@ -38,7 +48,10 @@ class DBHelper:
                     password=getConfig(conn_key,'password'))
         return db
 
-
+    # description:  パラメーターにより、クエリの条件やConnectを返還する
+    # parameters:   ①パラメーター1つ：データタイプより、ConnectKeyかクエリの条件を返還する。str→ConnectKey、dict→クエリ条件
+    #               ②パラメーター２つ：ConnectKey、クエリ条件同時に指定
+    # return:       クエリ条件、ConnectKey
     def getMapPars(self,args):
         pars={}
         conn_key=''
@@ -48,7 +61,7 @@ class DBHelper:
             # パラメータ一つのみ、かつstringタイプの場合は、Conの指定と見なす
             if type(args[0])==str:
                 conn_key=args[0]
-            # パラメータ一つのみ、かつjsonタイプの場合は、検索条件と見なす
+            # パラメータ一つのみ、かつjsonタイプの場合は、クエリの条件と見なす
             elif type(args[0])==dict:
                 pars=args[0]
         elif len(args)==2 :
@@ -56,10 +69,12 @@ class DBHelper:
             conn_key=args[1]
         return pars,conn_key
         
-        
-    # Mapでselectを実行
-    # パラメータ：{'aaa':123,'bbb',456}
-    # パラメータなしの場合は指定しなくていい
+    # description:  Mapでselectを実行
+    # parameters:   ①パラメーター1つ：無条件でSelectを実行する　例：selectByMap('selt1')
+    #               ②パラメーター２つ：ConnectKey指定の場合は無条件でSelectを実行する　例：selectByMap('selt1','connect_1')
+    #               　　　　　　　　　　検索条件指定の場合はディフォルトConnectで条件つけでSelectを実行する　　例：selectByMap('selt1',{name:'limingze',sex:1})
+    #               ③パラメーター３つ：検索条件、ConnectKey両方指定　例：selectByMap('selt1',{name:'limingze',sex:1},'connect_1')
+    # return:       検索結果（Json）
     def selectByMap(self,sqlid,*args):
         pars,conn_key=self.getMapPars(args)
         db = self.__conn(conn_key)
@@ -85,8 +100,16 @@ class DBHelper:
         db.close()
         return jsonResult
 
-    def insJson(self,tbl,strJson):
-        db = self.__conn()
+    # description:  JsonデータでInsertを実行
+    # parameters:   tbl:插入先テーブル名　strJson:插入データ
+    #               例：   insJson('table1',[{"id":996,"name":"limingze"},{"id":998,"name":"haruya"}])
+    #               　　　　　　　　　　検索条件指定の場合はディフォルトConnectで条件つけでSelectを実行する　　例：selectByMap('selt1',{name:'limingze',sex:1})
+    # return:       影響行数
+    def insJson(self,tbl,strJson,*args):
+        # db = self.__conn()
+        pars,conn_key=self.getMapPars(args)
+        db = self.__conn(conn_key)
+        print(pars)
         cursor = db.get_cursor()
         columns = ''
         placeholders = ''
@@ -113,6 +136,12 @@ class DBHelper:
         db.close()
         return {'Code':self.__SUCCESS_CODE,'Table0':cursor.rowcount}
 
+    # description:  Mapでdeleteを実行
+    # parameters:   ①パラメーター1つ:無条件でDeleteを実行する　例:deleteByMap('del1')
+    #               ②パラメーター２つ:ConnectKey指定の場合は無条件でDeleteを実行する　例:deleteByMap('del1','connect_1')
+    #               　　　　　　　　　　検索条件指定の場合はディフォルトConnectで条件つけでDeleteを実行する　　例:deleteByMap('del1',{name:'limingze',sex:1})
+    #               ③パラメーター３つ:検索条件、ConnectKey両方指定　例:deleteByMap('del1',{name:'limingze',sex:1},'connect_1')
+    # return:       影響行数
     def deleteByMap(self,sqlid,*args):
         # db = self.__conn()
         # sql=self.getSQL(sqlid, 'delete',pars)
@@ -126,6 +155,12 @@ class DBHelper:
         db.close()
         return {'Code':self.__SUCCESS_CODE,'Table0':cursor.rowcount}
 
+    # description:  Mapでupdateを実行
+    # parameters:   ①パラメーター1つ:無条件でUpdateを実行する　例:deleteByMap('del1')
+    #               ②パラメーター２つ:ConnectKey指定の場合は無条件でUpdateを実行する　例:updateByMap('update1','connect_1')
+    #               　　　　　　　　　　検索条件指定の場合はディフォルトConnectで条件つけでUpdateを実行する　　例:updateByMap('update1',{name:'limingze',sex:1})
+    #               ③パラメーター３つ:検索条件、ConnectKey両方指定　例:updateByMap('update1',{name:'limingze',sex:1},'connect_1')
+    # return:       影響行数
     def updateByMap(self,sqlid,*args):
         # db = self.__conn()
         # sql=self.getSQL(sqlid, 'update',pars)
@@ -139,8 +174,16 @@ class DBHelper:
         db.close()
         return {'Code':self.__SUCCESS_CODE,'Table0':cursor.rowcount}
 
-    def exe(self,sql):
-        db = self.__conn()
+    # description:  DBにExeを実行
+    # parameters:   ①パラメーター1つ:無条件でUpdateを実行する　例:deleteByMap('del1')
+    #               ②パラメーター２つ:ConnectKey指定の場合は無条件でUpdateを実行する　例:updateByMap('update1','connect_1')
+    # return:       実行結果
+    def exe(self,sql,*args):
+        # db = self.__conn()
+        pars,conn_key=self.getMapPars(args)
+        pars="これからSqlのパラメーター化にするかもしれない、[0][1]みたいな"
+        print(pars)
+        db = self.__conn(conn_key)
         cursor = db.get_cursor()
         n=cursor.execute(sql)
         db.commit()

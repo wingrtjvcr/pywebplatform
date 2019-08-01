@@ -12,11 +12,18 @@
         order by id desc
     </select>
     <select id="selectQCDProject">
-        SELECT cv.`value`,pj.* FROM projects pj
-        INNER JOIN custom_values cv
-        ON pj.id=cv.customized_id
-        AND cv.custom_field_id=2
-        and cv.`value`!=''
+SELECT cv.`value`,pj.* FROM projects pj 
+INNER JOIN custom_values cv 
+ON pj.id=cv.customized_id 
+AND cv.custom_field_id=2 
+and cv.`value`!='' 
+INNER JOIN (SELECT project_id as id FROM issues 
+INNER JOIN users 
+ON issues.assigned_to_id=users.id 
+AND users.login='limingze' 
+and issues.status_id in (1,2)) AS mepj 
+ON pj.id=mepj.id 
+
     </select>
     
     <select id="selt1">
