@@ -1,8 +1,11 @@
 from sanic import Blueprint,response
 from sanic.response import json, text, html,file
-from resource import conn as db2
+from resource import DBHelper
 from resource import common as com
+import aioodbc
+import pyodbc
 
+db2 = DBHelper(__name__)
 bp_rm = Blueprint('bp_rm')
 
 @bp_rm.route("/getprjectme")
@@ -17,7 +20,6 @@ async def getIssue(request):
     issueid=request.args.get('issueid')
     # ログインNameでユーザーの詳細情報を取得
     url="http://redmine.trechina.cn/issues/"+str(issueid)+".json?key=3677a9378645bf393c08579ee395fe7c5dba5586"
-
     result=com.getWSdata(url)
 
     return json(result)
@@ -26,21 +28,8 @@ async def getIssue(request):
 async def getIssueList(request):
      # ユーザーのログインid
     loginid=request.args.get('loginid')
-    # ユーザーのログインName
-    userid=getEmployeeInfo(loginid)['id']
-    # ログインNameでユーザーの詳細情報を取得
-    url="http://redmine.trechina.cn/issues.json?key=3677a9378645bf393c08579ee395fe7c5dba5586&assigned_to_id="+str(userid)
-    resultIssue=com.getWSdata(url)
-    arrIss = []
-    for iss in resultIssue['issues']:
-        pjid=iss['project']["id"]
-        # 一回判断をつけたPJを再度判断しないように
-        urlpj="http://redmine.trechina.cn/projects/"+str(pjid)+".json?key=3677a9378645bf393c08579ee395fe7c5dba5586"
-        resultPj=com.getWSdata(urlpj)
-        for custf in resultPj['project']['custom_fields']:
-            if custf["name"]=="PJCD" and custf["value"]!="" :
-                    arrIss.append(iss)
-    return json(arrIss)
+    result = db2.selectByMap("selectMyIssue",{'loginid':loginid,'status':'1,2'})
+    return json(result)
 
 @bp_rm.route("/getWorkType",methods=['GET','POST'])
 async def getWorkType(request):
@@ -59,12 +48,18 @@ async def getProject(request):
 
 @bp_rm.route("/insQCD",methods=['GET','POST'])
 async def insQCD(request):
-    wt=request.args.get('wt')
-    # url="http://10.2.1.171/system/api/PMMSS003"
-    url="http://172.17.6.81/time_entries.json?key=3677a9378645bf393c08579ee395fe7c5dba5586"
-    pars={"time_entry": {"issue_id": "20052","spent_on": "2019-07-25","hours": "10","activity_id": "13","comments": "test"}}
+    dsn = 'DRIVER={%s};SERVER=172.20.1.15;DATABASE=QCDDB;UID=read;PWD=' % pyodbc.drivers()[1]
+    conn = await aioodbc.connect(dsn=dsn)
+    cur = await conn.cursor()
+    await cur.execute("SELECT top 1 * FROM projects  WHERE  delete_flg = 0 and project_cd =50700318;")
+    rows = await cur.fetchall()
+    pjid=rows[0][0]
+    pars={"regist_req":[{"employee_cd":10120869,"man_hour":"2","project_id":pjid,"remarks":"test1","work_date":20190801,"work_detail_id":0,"work_id":152,"work_result_id":0,"upd_type_id":1}]}
+    url="http://10.2.1.171/system/api/PMRMS001"
     result=com.postWSdata(url,pars)
-    
+
+    await cur.close()
+    await conn.close()
     return json(result)
 
 

@@ -1,5 +1,5 @@
 # database #
-import uvloop, peewee
+# import uvloop, peewee
 from peewee_async import PostgresqlDatabase
 from peewee_async import MySQLDatabase
 from resource.common import getConfig
@@ -8,6 +8,8 @@ from sanic import Blueprint
 import os
 import json
 import math
+# import aioodbc
+import pyodbc
 
 
 class DBHelper:
@@ -46,6 +48,9 @@ class DBHelper:
                     host=getConfig(conn_key,'host'),
                     user=getConfig(conn_key,'user'),
                     password=getConfig(conn_key,'password'))
+            elif dbtype=='mssql':
+                dsn = 'DRIVER={%s};SERVER=%s;DATABASE=QCDDB;UID=read;PWD=' % pyodbc.drivers()[1],getConfig(conn_key,'database'),getConfig(conn_key,'host'),getConfig(conn_key,'user'),getConfig(conn_key,'password')
+
         return db
 
     # description:  パラメーターにより、クエリの条件やConnectを返還する

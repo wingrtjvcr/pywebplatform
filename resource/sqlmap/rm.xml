@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapper id="rm">
+    <select id="selectMyIssue">
+        SELECT 
+        cv.value as pjid
+        ,pj.name as pjname
+        ,issues.id as issid
+        ,issues.subject
+        ,issues.status_id as statusid
+        ,ist.name as statusname
+        FROM projects pj 
+        INNER JOIN custom_values cv 
+        ON pj.id=cv.customized_id 
+        AND cv.custom_field_id=2 
+        AND cv.`value`!='' 
+        INNER JOIN issues 
+        ON pj.id=issues.project_id 
+        AND issues.status_id in (${status})
+        INNER JOIN issue_statuses  ist
+        ON ist.id=issues.status_id
+        INNER JOIN users 
+        ON issues.assigned_to_id=users.id 
+        AND users.login=#{loginid}
+    </select>
+    
+</mapper>

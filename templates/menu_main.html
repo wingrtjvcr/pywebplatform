@@ -106,27 +106,33 @@
             type: 'get',
             url: _url,
             success: function(data){ 
-             dataIssue=data;
+              if(data.Code!=1) {
+                ui.loading('hide');
+                alert('エラー発生');
+                return 
+              }
+              data=data.Table0;
              var optionsIssue = new Array();
              var optionsProject = new Array();
-            //  //  チケットのデータを入れる
-            //  $(data).each(function (i, o) {
-            //   optionsIssue.push({
-            //          id: o.id,
-            //          text: '#'+o.id+' '+o.subject+' '+o.status.name
-            //      });
-            //  });
-            //  $("#select_issue").select2({
-            //      data: optionsIssue
-            //  })
 
-            $("#select_issue").append("<option pj='' value='0'>#0:無予定　ー　900000001_(間接)間接</option>")
-             for (var i=0;i<data.length;i++){
-                    var id= data[i].id;
-                    var text= '#'+data[i].id+':'+data[i].subject+' '+data[i].status.name
-                            +'　ー　'+data[i].project.name;
-                    $("#select_issue").append("<option pj='"+data[i].project.name+"' value='" + id + "'>" +text + "</option>");
-              }
+            $("#select_issue").append("<option pj='' value='0'>#0：無予定　ー　900000001_(間接)間接</option>")
+            //  //  チケットのデータを入れる
+             $(data).each(function (i, o) {
+              optionsIssue.push({
+                     id: o.pjid+'_'+o.issid,
+                     text: '#'+o.issid+'：'+o.subject+' '+o.statusname +'　ー　'+o.pjname
+                 });
+             });
+             $("#select_issue").select2({
+                 data: optionsIssue
+             })
+
+            //  for (var i=0;i<data.length;i++){
+            //         var id= data[i].id;
+            //         var text= '#'+data[i].id+':'+data[i].subject+' '+data[i].status.name
+            //                 +'　ー　'+data[i].project.name;
+            //         $("#select_issue").append("<option pj='"+data[i].project.name+"' value='" + id + "'>" +text + "</option>");
+            //   }
 
               ui.loading('hide');
           }
@@ -146,7 +152,7 @@
       // $('.radio').removeAttr('checked');
       // var pval='p'+sel[0].done_ratio;
       // $('#'+pval).attr('checked', 'true');
-          var issueid=$("#select_issue").val();
+          var issueid=$("#select_issue").val().split('_')[1];
           $('#eh_time').html('');
           $('#sh_time').html('');
           checkp('p0');
