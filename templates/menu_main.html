@@ -24,44 +24,81 @@
     <script>
       var dataIssue;
       var dataUser;
+      var uname = parent.$(".user.active").html();
+      uname='limingze'
+      var noneid='900000001_143';
+      var nonename='#0：予定なし　ー　900000001_(間接)間接';
 
-
+    // ※※※※※※※※※※※※※※※※※※※             ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    // ※※※※※※※※※※※※※※※※※※※　　初期化　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    // ※※※※※※※※※※※※※※※※※※※             ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
 	$(function() {
 
-    $(".js-characters-change").blur(function(){
-        charactersChange($(this));
-    });
-    charactersChange = function(ele){
-        var val = ele.val();
-        var han = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g,function(s){return String.fromCharCode(s.charCodeAt(0)-0xFEE0)});
+  // 日付コントローラーの初期化
+  $("#date").datetimepicker({
+    //设置语言 中文(需引入语言包)
+    language:'ja',
+    //选择日期后，不会再跳转去选择时分秒 
+    minView:'month',
+    //选择日期后，文本框显示的日期格式 
+    format:'yyyy-mm-dd',
+    //选择后自动关闭
+    autoclose:true,
+    //显示周 周数据为TRIAL专有周, 周数据范围 2016-01-03 ~ 2021-03-31, 不在范围内此列为空白
+    weekShow:true
+  });
+  $("#date").datetimepicker("setDate", new Date());
 
-        if(val.match(/[Ａ-Ｚａ-ｚ０-９]/g)){
-          $(ele).val(han);
-          // $('#sh_time').html(Number($('#sh_time').text())+Number(ele.val()));
-        }
-        else if(val.match(/[0-9]/g)){
-          // $('#sh_time').html(Number($('#sh_time').text())+Number(ele.val()));
-        }
-        else{
-          ele.val('');
-      }
-    }
 
-  //   _url='../getEmployeeInfo?name='+'limingze';
-  //   $.ajax({
-  //           type: 'get',
-  //           url: _url,
-  //           success: function(data){ 
-  //             dataUser=data;
-  //           }
-  //   });
-
-  // 初期状態はチケットありで
+  // 初期状態はチケットありに設定
   $('#ticketsel1').trigger("click");
-
+  // コントローラーの表示設定
   conshow();
-  // 登録区分クリックのイベント
+  
+
+  $('#select_pj').select2();
+	$('#select_wt').select2();
+	$('#select_issue').select2();
+
+    ui.loading();
+    _url='../getIssueList?loginid='+uname;
+    $.ajax({
+            type: 'get',
+            url: _url,
+            success: function(data){ 
+              if(data.Code!=1) {
+                ui.loading('hide');
+                alert('エラー発生');
+                return 
+              }
+              data=data.Table0;
+             var optionsIssue = new Array();
+             var optionsProject = new Array();
+
+              // 間接チケットを追加
+             optionsIssue.push({id:noneid ,text: nonename});
+             //  チケットのデータを入れる
+             $(data).each(function (i, o) {
+              optionsIssue.push({
+                     id: o.pjid+'_'+o.issid,
+                     text: '#'+o.issid+'：'+o.subject+' '+o.statusname +'　ー　'+o.pjname
+                 });
+             });
+             $("#select_issue").select2({
+                 data: optionsIssue
+             })
+
+              ui.loading('hide');
+          }
+    });
+
+    // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    // ※※※※※※※※※※※※※※※※※※※　　Click Event　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+
+    
+  // 「登録区分」クリック
   $('input[name="ticketsel"]').click(function(){
     // 画面各コントローラーの表示非表示
     conshow();
@@ -69,7 +106,7 @@
     if(!ischk() && $("#select_pj option").length<=1){
       ui.loading();
 
-        _url='../getProject?loginid='+loginid;
+        _url='../getProject?loginid='+uname;
         $.ajax({
                 type: 'get',
                 url: _url,
@@ -77,7 +114,6 @@
                 var dataProject=data.result;
                 var optionsProject = new Array();
                 //  チケットのデータを入れる
-                //  optionsProject.push({'id':'0','text':' - 指定なし - '});
                 $(dataProject).each(function (i, o) {
                   optionsProject.push({
                         id: o.project_id+'_'+o.work_type_id,
@@ -94,74 +130,114 @@
       }
 
   });
+  // 「登録」クリック
+$("#btnAddJS").click(function(){
+      if($("#select_issue").val()==null && $("#select_pj").val()==null){
+        alert('正しく入力してください');
+        return;
+      }
+      
+      // 重複クリックを防ぐ
+      $("#btnAddJS").attr("disabled","disabled");
 
-  $('#select_pj').select2();
-	$('#select_wt').select2();
-	$('#select_issue').select2();
+      // チケットありの場合、登録に必要な情報を取得
+			var memo=$("#inputmemo").val();
+      var wkhour=$("#inputtime").val();
+      
+      var pjcode='';
+      var issueid='';
+      if($("#select_issue").val()!=null ){
+         pjcode=$("#select_issue").val().split('_')[0];
+         issueid=$("#select_issue").val().split('_')[1];
 
-  var loginid='limingze';
-  ui.loading();
-    _url='../getIssueList?loginid='+loginid;
-    $.ajax({
-            type: 'get',
+      }
+      var done=$('input[name="progress"]:checked').val();
+
+      // チケットなしの場合、登録に必要な情報を取得
+      var date=$("#date").val();
+      var pjid='';
+      if($("#select_pj").val()!=null ){
+        pjid=$("#select_pj").val().split('_')[0];
+      }
+      var wt='';
+      if($("#select_wt").val()!=null ){
+        wt=$("#select_wt").val();
+      }
+      
+      // チケットありなしによって、必要データが異なる
+      if(ischk()){
+        if(uname == "" || pjcode == "" || memo == "" || wkhour == ""){
+            alert('正しく入力してください');
+            return false;
+        }}
+      else{
+        if(uname == "" || date == "" || pjid =="" || wt=="" || memo == "" ||wkhour == ""){
+            alert('正しく入力してください');
+            return false;
+        }
+      }
+
+      // チケットありなしによって、PostUrlが異なる
+      var _url='';
+      if(ischk())
+        _url='../insQCDandRM';
+      else
+        _url='../insQCD';
+
+			$.ajax({
+            type: 'GET',
+				    contentType:'application/x-www-form-urlencoded; charset=UTF-8',
             url: _url,
-            success: function(data){ 
-              if(data.Code!=1) {
-                ui.loading('hide');
-                alert('エラー発生');
-                return 
-              }
-              data=data.Table0;
-             var optionsIssue = new Array();
-             var optionsProject = new Array();
+            data: { 
+              uname : uname 
+            , pjcode : pjcode  
+            , memo : memo 
+            , wkhour : wkhour 
+            , issueid : issueid 
+            , done : done
+            , pjid : pjid
+            , wt:wt
+            , date:date
+            },
+            success: function(resjson){ 
+              $("#btnAddJS").removeAttr("disabled");
 
-            $("#select_issue").append("<option pj='' value='0'>#0：無予定　ー　900000001_(間接)間接</option>")
-            //  //  チケットのデータを入れる
-             $(data).each(function (i, o) {
-              optionsIssue.push({
-                     id: o.pjid+'_'+o.issid,
-                     text: '#'+o.issid+'：'+o.subject+' '+o.statusname +'　ー　'+o.pjname
-                 });
-             });
-             $("#select_issue").select2({
-                 data: optionsIssue
-             })
+              if(resjson.status=="0"){
+                alert('登録成功しました。'); 
+                clearConValue();
+              }else{
+                alert('登録失敗しました。');} 
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              alert('ERROR');
+            }
+      });
 
-            //  for (var i=0;i<data.length;i++){
-            //         var id= data[i].id;
-            //         var text= '#'+data[i].id+':'+data[i].subject+' '+data[i].status.name
-            //                 +'　ー　'+data[i].project.name;
-            //         $("#select_issue").append("<option pj='"+data[i].project.name+"' value='" + id + "'>" +text + "</option>");
-            //   }
-
-              ui.loading('hide');
-          }
     });
+    // 「進捗」クリック
+    $("input[type=radio]").click(function(){
+      var p=$(this).next();
+      checkp(p.attr('for'));
+    })
 
- 
+    // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    // ※※※※※※※※※※※※※※※※※※※　　Change Event  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
-
-
-// 		var uname = parent.$(".user.active").html();
-// 		var pjid_worktypei = "";
-// 		var wk_id = "";
-// 		var issue_id ="";
+    // 「チケット」変更
 		$("#select_issue").on("change",function(e){
-      console.log(e);
-      // var sel=dataIssue.filter(function (e) { return e.id == $("#select_issue").val(); });
-      // $('.radio').removeAttr('checked');
-      // var pval='p'+sel[0].done_ratio;
-      // $('#'+pval).attr('checked', 'true');
+      if($("#select_issue").val()==null)return;
           var issueid=$("#select_issue").val().split('_')[1];
           $('#eh_time').html('');
           $('#sh_time').html('');
-          checkp('p0');
-
-          if($('#select_issue').val()=='0'){
-            $('#eh_time').html('');
-            $('#sh_time').html('');
-            $('#lab_time').html('');
+          $('#lab_time').html('');
+          //　間接課題の場合はチケットとしての情報を非表示
+          if($('#select_issue').val()==noneid){
+            $('#tr_prog').hide();
+            checkp('p0');
             return;
+          }else{
+            $('#tr_prog').show();
           }
           
           _url='../getIssue?issueid='+issueid;
@@ -197,10 +273,11 @@
               }
         });
         
-		});
-
+    });
+    // 「課題」変更
 		$("#select_pj").on("change",function(e){
 　　			console.log(e);
+        if($("#select_pj").val()==null)return;
         var selpj=$("#select_pj").val();
         var pjcd=selpj.split('_')[0];
         var wt=selpj.split('_')[1];
@@ -228,28 +305,51 @@
         	});
 		});
 
-$("#date").datetimepicker({
-  //设置语言 中文(需引入语言包)
-  language:'ja',
-  //选择日期后，不会再跳转去选择时分秒 
-  minView:'month',
-  //选择日期后，文本框显示的日期格式 
-  format:'yyyy-mm-dd',
-  //选择后自动关闭
-  autoclose:true,
-  //显示周 周数据为TRIAL专有周, 周数据范围 2016-01-03 ~ 2021-03-31, 不在范围内此列为空白
-  weekShow:true
-});
-$("#date").datetimepicker("setDate", new Date());
+    // 全角数字を半角数字に変換
+    $(".js-characters-change").blur(function(){
+        charactersChange($(this));
+    });
+    charactersChange = function(ele){
+        var val = ele.val();
+        var han = val.replace(/[Ａ-Ｚａ-ｚ０-９]/g,function(s){return String.fromCharCode(s.charCodeAt(0)-0xFEE0)});
 
-$("input[type=radio]").click(function(){
-  var p=$(this).next();
-  checkp(p.attr('for'));
+        if(val.match(/[Ａ-Ｚａ-ｚ０-９]/g)){
+          $(ele).val(han);
+          // $('#sh_time').html(Number($('#sh_time').text())+Number(ele.val()));
+        }
+        else if(val.match(/[0-9]/g)){
+          // $('#sh_time').html(Number($('#sh_time').text())+Number(ele.val()));
+        }
+        else{
+          ele.val('');
+      }
+    }
 })
 
-  })
-
+  // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+  // ※※※※※※※※※※※※※※※※※※※　　共通関数       ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+  // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    
   
+
+// コントローラーの入力内容をクリア
+function clearConValue(){
+  // コメント
+  $("#inputmemo").val('');
+  // 時間(Hour)
+  $("#inputtime").val('');
+  // チケット
+  $("#select_issue").select2("val", " ");
+  // 課題
+  $("#select_pj").select2("val", " "); 
+  // 作業
+  $("#select_wt").select2("val", " "); 
+  // 進捗
+  checkp('p0');
+  // 消耗時間
+  $('#eh_time').html('');
+  $('#sh_time').html('');
+}  
 // チケットありなし
 function ischk(){
       // チケットありなし
@@ -265,7 +365,6 @@ function checkp(pid){
 
 // 画面各コントローラーの表示非表示
 function conshow(){
-    
     $('#inputmemo').val('');
     $('#inputtime').val('');
     $('#sh_time').html('');
@@ -288,95 +387,7 @@ function conshow(){
         $('#tr_wt').show();
     }
   }
-
-
-
-
-// 		$("#select_pj").on("select2:select",function(e){
-
-// 			console.log(e);
-// 			pjid_worktype = e.params.data.id;
-// 			pjcd_pjname = e.params.data.text;
-
-// 			$.ajax({
-//                         	type: 'POST',
-//                         	url: 'qcd_worktype',
-//                         	data: { worktype : pjid_worktype },
-//                         	success: function(result){ $("#select_wt").html(result); }
-//                 	});
-
-// 			$.ajax({
-//                                 type: 'POST',
-//                                 url: 'qcd_issue',
-//                                 data: { pjcd : pjcd_pjname },
-//                                 success: function(result){ $("#select_issue").html(result); }
-//                         });
-
-// 		});
-
-// 		$("#select_wt").on("select2:select",function(e){
-// 			console.log(e.params.data.id);
-// 			wk_id=e.params.data.id;
-// 		});
-
-		// $("#select_issue").on("select2:select",function(e){
-    //                     console.log(e.params.data.id);
-    //                     issue_id=e.params.data.id;
-    //             });
-
-
-		$("#btn_workdata").click(function(){
-
-			var wk_memo=$("#inputmemo").val();
-			var wk_hour=$("#inputtime").val();
-
-//			if(issue_id == ""){
-//
-//				alert('No Ticket, No Work!!!!!!!! チケット入力してください。');
-//				return false;
-//			}
-
-      var done=$('input[name="progress"]:checked').val();
-
-      if(uname == "" || pjid_worktype == "" || wk_id == "" || wk_memo == "" ||wk_hour == ""){
-              alert('正しく入力してください');
-              return false;
-      };
-
-			$.ajax({
-                        	type: 'POST',
-				contentType:'application/x-www-form-urlencoded; charset=UTF-8',
-                        	url: 'qcd_insert',
-                        	data: { uname : uname , pjid : pjid_worktype , workid : wk_id , memo : wk_memo , manhour : wk_hour ,issueid : issue_id },
-                        	success: function(resjson){ var obj = eval('('+resjson+')'); if(obj.result=="OK"){alert('登録成功しました。'); window.location.reload();  }else{alert('登録失敗しました。');} },
-				error: function(jqXHR, textStatus, errorThrown) {alert('ERROR');}
-                	});
-
-
-
-		});
-
-// 		$.ajax({
-//   			type: 'POST',
-//   			url: 'workdata',
-//   			data: { uname : uname },
-//   			success: function(result){ $("#home").html(result); }
-// 		});
-
-// 		$.ajax({
-//                         type: 'POST',
-//                         url: 'worktodo',
-//                         data: { uname : uname },
-//                         success: function(result){ $("#todo").html(result); }
-//                 });
-
-//     $.ajax({
-//             type: 'POST',
-//             url: 'qcd_projects',
-//             data: { uname : uname },
-//             success: function(result){ $("#select_pj").html(result); }
-//     });
-
+  
 
   
     </script>
@@ -540,7 +551,7 @@ function conshow(){
           </div>
           <div class="form-group">
             <div class="col-xs-offset-3 col-xs-8">
-              <button class="btn btn-primary" id="btn_workdata">登 録</button>
+              <button type="button" class="btn btn-primary" id="btnAddJS">登 録</button>
             </div>
           </div>
 
