@@ -100,6 +100,8 @@
     
   // 「登録区分」クリック
   $('input[name="ticketsel"]').click(function(){
+    // 日付を今日にリセット
+    $("#date").datetimepicker("setDate", new Date());
     // 画面各コントローラーの表示非表示
     conshow();
     // チケットなしかつselect_pjに課題データなしの場合は、課題データを読み込む
@@ -179,8 +181,15 @@ $("#btnAddJS").click(function(){
 
       // チケットありなしによって、PostUrlが異なる
       var _url='';
-      if(ischk())
+      if(ischk()){
         _url='../insQCDandRM';
+        if($("#select_issue").val()==noneid){
+          wt=41;
+          _url='../insQCD';
+          pjid=$("#select_issue").val().split('_')[1];
+        }
+
+      }
       else
         _url='../insQCD';
 

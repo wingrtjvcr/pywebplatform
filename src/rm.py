@@ -65,9 +65,10 @@ async def insQCD(request):
     pars={"regist_req":[{"employee_cd":employeecd,"man_hour":wkhour,"project_id":pjid,"remarks":memo,"work_date":date,"work_detail_id":0,"work_id":wkid,"work_result_id":0,"upd_type_id":1}]}
     url="http://10.2.1.171/system/api/PMRMS001"
     # ★★ QCDシステムに反映 ★★
-    result=com.postWSdata(url,pars)
+    # result=com.postWSdata(url,pars)
 
-    return json(result)
+    return json('result')
+    # return json(result)
 
 @bp_rm.route("/insQCDandRM",methods=['GET','POST'])
 async def insQCDandRM(request):
