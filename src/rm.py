@@ -50,6 +50,7 @@ async def getProject(request):
     result=com.postWSdata(url,pars)
     return json(result)
 
+# QCDシステム登録
 @bp_rm.route("/insQCD",methods=['GET','POST'])
 async def insQCD(request):
     uname=request.args.get('uname')
@@ -65,11 +66,12 @@ async def insQCD(request):
     pars={"regist_req":[{"employee_cd":employeecd,"man_hour":wkhour,"project_id":pjid,"remarks":memo,"work_date":date,"work_detail_id":0,"work_id":wkid,"work_result_id":0,"upd_type_id":1}]}
     url="http://10.2.1.171/system/api/PMRMS001"
     # ★★ QCDシステムに反映 ★★
-    # result=com.postWSdata(url,pars)
+    result=com.postWSdata(url,pars)
 
-    return json('result')
-    # return json(result)
+    # return json('result')
+    return json(result)
 
+# QCDシステム and RM 登録
 @bp_rm.route("/insQCDandRM",methods=['GET','POST'])
 async def insQCDandRM(request):
     uname=request.args.get('uname')
@@ -94,7 +96,7 @@ async def insQCDandRM(request):
     pars={"regist_req":[{"employee_cd":employeecd,"man_hour":wkhour,"project_id":pjid,"remarks":memo,"work_date":datetime.datetime.now().strftime('%Y%m%d'),"work_detail_id":0,"work_id":wkid,"work_result_id":0,"upd_type_id":1}]}
     url="http://10.2.1.171/system/api/PMRMS001"
     # ★★ QCDシステムに反映 ★★
-    # result=com.postWSdata(url,pars)
+    result=com.postWSdata(url,pars)
     await cur.close()
     await conn.close()
     
@@ -108,17 +110,17 @@ async def insQCDandRM(request):
     time_entry.activity_id = 13
     time_entry.comments = memo
     # ★★ RMに反映 ★★
-    # time_entry.save()
+    time_entry.save()
 
     # チケットの進捗率、履歴を更新
     issue = redminelib.issue.get(issueid)
     issue.done_ratio  = done
     issue.notes = memo
     # ★★ RMに反映 ★★
-    # issue.save()
+    issue.save()
     
-    return json('result')
-    # return json(result)
+    # return json('result')
+    return json(result)
 
 
 def getEmployeeInfo(loginid):
