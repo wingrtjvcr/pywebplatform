@@ -45,7 +45,7 @@ $.ajax({
       success: function(data){ 
         if(data.Code!=1) {
           ui.loading('hide');
-          alert('エラー発生');
+          toastr.error('エラー発生');
           return 
         }
         data=data.Table0;
@@ -111,7 +111,7 @@ ui.loading();
 // 「登録」クリック
 $("#btnAddJS").click(function(){
 if($("#select_issue").val()==null && $("#select_pj").val()==null){
-  alert('正しく入力してください');
+  toastr.warning('正しく入力してください');
   return;
 }
 
@@ -119,9 +119,8 @@ if($("#select_issue").val()==null && $("#select_pj").val()==null){
 $("#btnAddJS").attr("disabled","disabled");
 
 // チケットありの場合、登録に必要な情報を取得
-      var memo=$("#inputmemo").val();
+var memo=$("#inputmemo").val();
 var wkhour=$("#inputtime").val();
-
 var pjcode='';
 var issueid='';
 if($("#select_issue").val()!=null ){
@@ -129,7 +128,8 @@ if($("#select_issue").val()!=null ){
    issueid=$("#select_issue").val().split('_')[1];
 
 }
-var done=$('input[name="progress"]:checked').val();
+// var done=$('input[name="progress"]:checked').val();
+var done=_done;
 // alert(done);
 
 // チケットなしの場合、登録に必要な情報を取得
@@ -146,30 +146,32 @@ if($("#select_wt").val()!=null ){
 // チケットありなしによって、必要データが異なる
 if(ischk()){
   if(uname == "" || pjcode == "" || memo == "" || wkhour == ""){
-      alert('正しく入力してください');
+      toastr.warning('正しく入力してください');
+      $("#btnAddJS").removeAttr("disabled");
       return false;
   }}
 else{
   if(uname == "" || date == "" || pjid =="" || wt=="" || memo == "" ||wkhour == ""){
-      alert('正しく入力してください');
+      toastr.warning('正しく入力してください');
+      $("#btnAddJS").removeAttr("disabled");
       return false;
   }
 }
 
 // チケットありなしによって、PostUrlが異なる
 var _url='';
-if(ischk()){
-  _url='../insQCDandRM';
-  if($("#select_issue").val()==noneid){
-    wt=41;
-    _url='../insQCD';
-    pjid=$("#select_issue").val().split('_')[1];
-  }
+// if(ischk()){
+//   _url='../insQCDandRM';
+//   if($("#select_issue").val()==noneid){
+//     wt=41;
+//     _url='../insQCD';
+//     pjid=$("#select_issue").val().split('_')[1];
+//   }
 
-}
-else
-  _url='../insQCD';
-
+// }
+// else
+//   _url='../insQCD';
+  ui.loading();
       $.ajax({
       type: 'GET',
               contentType:'application/x-www-form-urlencoded; charset=UTF-8',
@@ -186,16 +188,19 @@ else
       , date:date
       },
       success: function(resjson){ 
-        $("#btnAddJS").removeAttr("disabled");
-
         if(resjson.status=="0"){
-          alert('登録成功しました。'); 
+          toastr.success('登録成功しました。');
           clearConValue();
         }else{
-          alert('登録失敗しました。');} 
+           toastr.error('登録失敗しました。');
+        } 
+
+        $("#btnAddJS").removeAttr("disabled");
+        ui.loading('hide');
       },
       error: function(jqXHR, textStatus, errorThrown) {
-        alert('ERROR');
+        toastr.error('ERROR');
+        ui.loading('hide');
       }
 });
 
@@ -219,8 +224,8 @@ if($("#select_issue").val()==null)return;
     $('#lab_time').html('');
     //　間接課題の場合はチケットとしての情報を非表示
     if($('#select_issue').val()==noneid){
-      $('#tr_prog').hide();
       checkp('p0');
+      $('#tr_prog').hide();
       return;
     }else{
       $('#tr_prog').show();
@@ -341,14 +346,14 @@ function ischk(){
 // チケットありなし
 return $("#ticketsel1").is(":checked");
 }
+var _done;
 // チェックにより進捗率を変更
 function checkp(pid){
-$('#'+pid).attr("checked", true);
+// $('#'+pid).attr("checked", true);
 $('#prog-bar').attr('class','');
 $('#prog-bar').addClass('progress-bar');
 $('#prog-bar').addClass(pid);
-// クリックBUG対応
-$('#'+pid).trigger("click");
+_done=pid.split('p')[1];
 // alert($('input[name="progress"]:checked').val());
 }
 
