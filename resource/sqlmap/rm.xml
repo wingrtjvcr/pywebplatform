@@ -22,5 +22,21 @@
         ON issues.assigned_to_id=users.id 
         AND users.login=#{loginid}
     </select>
+
+    <select id="selectTodo">
+select i.id as issueid,p.name as pjname,t.name as tname,s.name as sname,i.subject 
+from bitnami_redmine.issues  as i 
+inner join bitnami_redmine.users  as u 
+on i.assigned_to_id = u.id 
+inner join bitnami_redmine.issue_statuses as s 
+on i.status_id = s.id 
+inner join bitnami_redmine.projects as p 
+on i.project_id = p.id 
+inner join bitnami_redmine.trackers as t 
+on i.tracker_id = t.id 
+where u.login = #{loginid} 
+and s.is_closed = 0 
+order by 1 desc 
+    </select>
     
 </mapper>

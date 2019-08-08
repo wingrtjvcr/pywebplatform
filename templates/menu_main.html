@@ -13,6 +13,8 @@
     <script src="static/tools/datetimepicker/bootstrap-datetimepicker.ja.js"></script>
     <script src="static/tools/ui.js/ui.min.js"></script>
     <script src="static/tools/toastr/toastr.min.js"></script>
+    <script src="static/tools/toastr/toastr.min.js"></script>
+    <script src="static/js/common.js"></script>
 
     <link rel="stylesheet" href="static/tools/bootstrap-3.3.7-dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="static/tools/select2/select2.min.css" />
@@ -20,7 +22,6 @@
     <link rel="stylesheet" href="static/tools/datetimepicker/bootstrap-datetimepicker.min.css" />
     <link rel="stylesheet" href="static/tools/radiobox/style.css" />
     <link rel="stylesheet" href="static/tools/ui.js/ui.min.css" />
-    <link rel="stylesheet" href="static/tools/toastr/toastr.min.css" />
     
     <!-- 業務JS -->
     <script src="static/js/rm.js"></script>
@@ -33,7 +34,7 @@
         <a href="#home" data-toggle="tab">近況</a>
       </li>
       <li>
-        <a href="#todo" data-toggle="tab">Todo</a>
+        <a href="#todo" data-toggle="tab" onclick="getTodo()">Todo</a>
       </li>
       <li class="active">
         <a href="#qcd" data-toggle="tab">QCD</a>
@@ -319,7 +320,11 @@
           </li>
         </ul>
       </div>
-      <div class="tab-pane fade" id="todo"></div>
+      <div class="tab-pane fade" id="todo">
+        <table class="table" id="tblTodo"></table>
+
+
+      </div>
       <div class="tab-pane fade" id="RedmineTool">
         <ul>
           <li>

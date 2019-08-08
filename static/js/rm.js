@@ -160,17 +160,17 @@ else{
 
 // チケットありなしによって、PostUrlが異なる
 var _url='';
-// if(ischk()){
-//   _url='../insQCDandRM';
-//   if($("#select_issue").val()==noneid){
-//     wt=41;
-//     _url='../insQCD';
-//     pjid=$("#select_issue").val().split('_')[1];
-//   }
+if(ischk()){
+  _url='../insQCDandRM';
+  if($("#select_issue").val()==noneid){
+    wt=41;
+    _url='../insQCD';
+    pjid=$("#select_issue").val().split('_')[1];
+  }
 
-// }
-// else
-//   _url='../insQCD';
+}
+else
+  _url='../insQCD';
   ui.loading();
       $.ajax({
       type: 'GET',
@@ -316,6 +316,38 @@ charactersChange = function(ele){
 }
 }
 })
+
+function getTodo(){
+ui.loading();
+_url='../getTodo?loginid='+uname;
+$.ajax({
+      type: 'get',
+      url: _url,
+      success: function(data){ 
+        if(data.Code!=1) {
+          ui.loading('hide');
+          toastr.error('エラー発生');
+          return 
+        }
+        data=data.Table0;
+      var t='<tr><td>#</td><td>Project</td><td>Tracker</td><td>Status</td><td>Subject</td></tr>';
+      var _row='<tr><td><a href="http://redmine.trechina.cn/issues/{0}" target="_blank" >{0}</a></td><td>{1}</td><td>{2}</td><td>{3}</td><td><a href="http://redmine.trechina.cn/issues/{0}" target="_blank" >{4}</a></td></tr>';
+      var datarow='';
+       //  チケットのデータを入れる
+       $(data).each(function (i, o) {
+         
+        datarow=datarow+String.format(_row,o.issueid,o.pjname,o.tname,o.sname,o.subject);
+       });
+       $('#todo').html('<table class="table table-striped table-condensed">'+t+datarow+'</table>');
+
+        ui.loading('hide');
+    }
+});
+}
+
+function getworkinfo(){
+  
+}
 
 // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※　　共通関数       ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※

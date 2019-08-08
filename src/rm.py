@@ -122,6 +122,14 @@ async def insQCDandRM(request):
     # return json('result')
     return json(result)
 
+    
+@bp_rm.route("/getTodo",methods=['GET','POST'])
+async def getTodo(request):
+     # ユーザーのログインid
+    loginid=request.args.get('loginid')
+    result = db2.selectByMap("selectTodo",{'loginid':loginid})
+    return json(result)
+ 
 
 def getEmployeeInfo(loginid):
     api_key = '3677a9378645bf393c08579ee395fe7c5dba5586'
