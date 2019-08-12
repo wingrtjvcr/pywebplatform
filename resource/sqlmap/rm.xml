@@ -38,5 +38,181 @@ where u.login = #{loginid}
 and s.is_closed = 0 
 order by 1 desc 
     </select>
-    
+ <select id="selectWorkdata">
+ SELECT CONVERT(INT,K.EmployeeCD) AS '社員CD'   
+ ,ltrim(rtrim(replace(replace(M.[従業員名],CHAR(13) + CHAR(10),''),' ',''))) AS '社員名'  
+ ,right('00'+convert(varchar,DATEPART(mm,K.Sday)),2)+'/'+right('00'+convert(varchar,DATEPART(dd,K.Sday)),2) AS '日付'   
+ ,left(datename(weekday, K.Sday),1)  AS '曜日'    
+ ,CASE K.kadou_flg   
+ WHEN '出勤' THEN '出'  
+ WHEN '公休' THEN '休'   
+ ELSE K.kadou_flg END AS '区分 '  
+ ,right('00'+convert(varchar,datepart(hour,K.kadou_stime)),2)+':'+ right('00'+convert(varchar,datepart(Minute,K.kadou_stime)),2) AS '計画出勤'   
+ ,right('00'+convert(varchar,datepart(hour,K.kadou_etime)),2)+':'+ right('00'+convert(varchar,datepart(Minute,K.kadou_etime)),2) AS '計画退勤'  
+ ,right('00'+convert(varchar,datepart(hour,J.jsk_stime)),2)+':'+ right('00'+convert(varchar,datepart(Minute,J.jsk_stime)),2) AS '出勤打刻' 
+ ,right('00'+convert(varchar,datepart(hour,J.jsk_etime)),2)+':'+ right('00'+convert(varchar,datepart(Minute,J.jsk_etime)),2) AS '退勤打刻'  
+,case when K.sday=convert(varchar,getdate(),111) then 'Checking' else convert(varchar,P.PMOInTime) end AS 'QCD実績'   
+ ,null AS 'RedMine実績'   
+ ,case when PMOInTime is null then null when K.kadou_flg = '公休' then P.PMOInTime else ( case when P.PMOInTime+isnull(LV.Leavetime,0)-480 >0 then P.PMOInTime+isnull(LV.Leavetime,0)-480 else null end ) end AS 'QCD残業(分)'    
+ ,case when PMOInTime is null and isnull(HR.Zsum,0) = 0 then null when (case when K.kadou_flg = '公休' then P.PMOInTime else ( case when P.PMOInTime+isnull(LV.Leavetime,0)-480 >0 then P.PMOInTime+isnull(LV.Leavetime,0)-480 else null end ) end) >= 0 then isnull(HR.Zsum,0) else HR.Zsum end  AS '残業申請(分)'    
+,rtrim(convert(decimal(18,0),P.PMORate*100))+'%' AS '稼働率'  
+,LV.Leavetype AS '休暇区分'  
+ ,LV.Leavetime AS '休暇時間'  
+ FROM    
+ (   
+ 	SELECT  [EmployeeCD]    
+ 	,convert(varchar,[YearMonthDay],111) as Sday    
+ 	,convert(datetime,convert(varchar,[YearMonthDay],111) +' ' +convert(varchar,datepart(hour,[WorkStartTime])) +':'+convert(varchar,datepart(minute,[WorkStartTime]))) as kadou_stime    
+ 	,convert(datetime,convert(varchar,[YearMonthDay],111) +' ' +convert(varchar,datepart(hour,[WorkEndTime])) +':'+convert(varchar,datepart(minute,[WorkEndTime]))) as kadou_etime    
+ 	,[AttendanceFlag] as kadou_flg    
+ 	FROM [172.17.1.13].[dbkintai].[dbo].[T_D稼動計画取込]    
+ 	where EmployeeCD IN (#{employeecd})  
+ 	AND YearMonthDay >= '${beginday}'  
+ 	AND YearMonthDay <= '${endday}'  
+ 	union  
+ 	SELECT [UserCD] as EmployeeCD  
+ 	,convert(varchar,[WorkDate],111) as Sday  
+ 	,case when ISNUMERIC(left(isnull([PlanBeginTime],' '),1))=1 then convert(datetime,convert(varchar,[WorkDate],111) +' ' + [PlanBeginTime])  
+ 	else null end as kadou_stime  
+ 	,case when ISNUMERIC(left(isnull([PlanEndTime],' '),1))=1 then convert(datetime,convert(varchar,[WorkDate],111) +' ' + [PlanEndTime])  
+ 	else null end as kadou_etime  
+ 	,case when ISNUMERIC(left(isnull([PlanBeginTime],' '),1))=1 then '出勤'  
+ 	else [PlanBeginTime] end as kadou_flg  
+ 	FROM [172.17.5.8].[WMS].[dbo].[AttendancePlan]  
+ 	where UserCD IN (#{employeecd})  
+ 	AND WorkDate >= '${beginday}'  
+ 	AND WorkDate <= '${endday}'  
+ ) AS K    
+ LEFT JOIN    
+ (    
+ 	SELECT [EmployeeCD]   
+ 	,Sday   
+ 	,max(jsk_stime) AS jsk_stime   
+ 	,max(jsk_etime) AS jsk_etime    
+ 	FROM    
+ 	(   
+ 	select a.BADGENUMBER as [EmployeeCD],a.sday,a.begin_time as jsk_stime  
+ 	,case when datepart(hour,b.end_time - a.begin_time ) > 2 then b.end_time  
+ 	else null end as jsk_etime  
+ 	from   
+ 	(  
+ 	SELECT   
+ 	convert(datetime,CONVERT(VARCHAR(10),C.checktime,120)) as sday  
+ 	,U.BADGENUMBER  
+ 	,min(C.checktime) as begin_time  
+ 	from [172.17.1.13].ZKTeco.dbo.CHECKINOUT  C   
+ 	inner join [172.17.1.13].ZKTeco.dbo.USERINFO U  
+ 	on C.USERID=U.USERID  
+ 	where U.BADGENUMBER IN (#{employeecd})  
+ 	and  C.checktime >= '${beginday}'
+ 	group by convert(datetime,CONVERT(VARCHAR(10),C.checktime,120))  
+ 	,U.BADGENUMBER  
+ 	) as a  
+ 	left join  
+ 	(  
+ 	SELECT   
+ 	convert(datetime,CONVERT(VARCHAR(10),C.checktime,120)) as sday  
+ 	,U.BADGENUMBER  
+ 	,max(C.checktime) as end_time  
+ 	from [172.17.1.13].ZKTeco.dbo.CHECKINOUT  C   
+ 	inner join [172.17.1.13].ZKTeco.dbo.USERINFO U  
+ 	on C.USERID=U.USERID  
+ 	where U.BADGENUMBER IN (#{employeecd})  
+ 	and  C.checktime >= '${beginday}'
+ 	group by convert(datetime,CONVERT(VARCHAR(10),C.checktime,120))  
+ 	,U.BADGENUMBER  
+ 	)  
+ 	as b  
+ 	on a.sday = b.sday  
+ 	and a.BADGENUMBER = b.BADGENUMBER  
+ 	) AS T    
+ 	GROUP BY [EmployeeCD],Sday    
+ ) AS J    
+ ON K.[EmployeeCD] = J.[EmployeeCD]    
+ AND K.Sday = J.Sday    
+ LEFT JOIN   
+ (   
+ 	select employee_cd as EmployeeCode  
+ 	,work_date as [Date]   
+ 	,cast(sum(man_hour*60) as int) as PMOInTime  
+ 	,sum(case when left(pj.project_cd,5)='90000' then 0 else man_hour*60 end)/sum(man_hour*60) as PMORate  
+ 	from QCDDB.dbo.work_results as data with (nolock) 
+ 	left join [QCDDB].[dbo].[projects] as pj with (nolock) 
+ 	on data.project_id = pj.project_id  
+ 	where data.employee_cd in (#{employeecd})   
+ 	and data.work_date between '${beginday}' and '${endday}'   
+ 	and data.delete_flg = 0  
+ 	group by data.employee_cd,data.work_date  
+ ) AS P   
+ ON K.[EmployeeCD] = P.EmployeeCode   
+ AND K.Sday = P.[Date]   
+ left join (   
+ 	select CONVERT(datetime,convert(varchar,WorkDateYear)+'/' +convert(varchar,WorkDateMonth)+'/'+convert(varchar,WorkDateDay)) AS HDAY,UserCD,convert(int,SUM(WorkTimeTotalHour)*60) AS Zsum    
+ 	FROM [172.17.5.8].[WMS].[dbo].[WorkRecords]   
+ 	where CONVERT(datetime,convert(varchar,WorkDateYear)+'/' +convert(varchar,WorkDateMonth)+'/'+convert(varchar,WorkDateDay)) >= '${beginday}'  
+ 	and CONVERT(datetime,convert(varchar,WorkDateYear)+'/' +convert(varchar,WorkDateMonth)+'/'+convert(varchar,WorkDateDay)) <= '${endday}'   
+ 	and UserCD in (#{employeecd})   
+ 	and ApproveFlg1 <> 9  
+ 	group by CONVERT(datetime,convert(varchar,WorkDateYear)+'/' +convert(varchar,WorkDateMonth)+'/'+convert(varchar,WorkDateDay)),UserCD   
+ ) AS HR   
+ ON HR.UserCD = K.EmployeeCD    
+ AND HR.HDAY= K.[Sday]   
+ LEFT JOIN   
+ (   
+ 	select AA.EmployeeCD    
+ 	,Sday     
+ 	,case when lsday = leday then TT.LeaveTimeHour else 8*60 end as LeaveTime     
+ 	,leavetype  
+ 	from     
+ 	(    
+ 	SELECT  [UserCD] AS [EmployeeCD]      
+ 	,convert(varchar,[WorkDate],111) as Sday       
+ 	FROM [172.17.5.8].[WMS].[dbo].[AttendancePlan]     
+ 	where [UserCD] IN (#{employeecd})     
+ 	AND [WorkDate] >= '${beginday}'  
+ 	AND [WorkDate] <= '${endday}'   
+ 	) AS AA     
+ 	LEFT JOIN     
+ 	(    
+ 	select usercd     
+ 	,CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay)) as lsday     
+ 	,case when LeaveDateEndYear is null then CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay))    
+ 	else CONVERT(datetime,convert(varchar,LeaveDateEndYear)+'/' +convert(varchar,LeaveDateEndMonth)+'/'+convert(varchar,LeaveDateEndDay)) end as leday    
+ 	,convert(int,sum([LeaveTimeHour])* 60) as [LeaveTimeHour]   
+ 	,case leavetype when 1 then '振替' when 2 then '有給' when 3 then '個欠' when 4 then '病欠' when 21 then '有給(婚)' when 22 then '有給(弔)' when 23 then '有給(産)' end as leavetype  
+ 	from [172.17.5.8].[WMS].[dbo].[LeaveRecords]     
+ 	where usercd IN (#{employeecd})    
+ 	and ZhentiFlag <> 1  
+ 	and ApproveFlg1 <> 9  
+ 	and LeaveDateYear is not null   
+ 	and    
+ 	(   
+ 	(   
+ 	CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay)) >= '${beginday}'  
+ 	and CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay)) <= '${endday}'   
+ 	) or   
+ 	(   
+ 	CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay)) <= '${beginday}'  
+ 	and    
+ 	case LeaveDateEndYear  when null then CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay))    
+ 	else CONVERT(datetime,convert(varchar,LeaveDateEndYear)+'/' +convert(varchar,LeaveDateEndMonth)+'/'+convert(varchar,LeaveDateEndDay)) end >='${beginday}'  
+ 	)   
+ 	)   
+ 	group by   
+ 	usercd   
+ 	,leavetype  
+ 	,CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay))   
+ 	,case when LeaveDateEndYear is null then CONVERT(datetime,convert(varchar,LeaveDateYear)+'/' +convert(varchar,LeaveDateMonth)+'/'+convert(varchar,LeaveDateDay))    
+ 	else CONVERT(datetime,convert(varchar,LeaveDateEndYear)+'/' +convert(varchar,LeaveDateEndMonth)+'/'+convert(varchar,LeaveDateEndDay)) end   
+ 	) AS TT     
+ 	ON AA.EmployeeCD = TT.usercd     
+ 	where Sday >= lsday  and sday <= leday     
+ ) AS LV   
+ ON K.EmployeeCD = LV.EmployeeCD   
+ AND K.Sday = LV.Sday   
+ LEFT JOIN [172.17.1.13].dbkintai.dbo.T_M従業員 AS M    
+ ON K.EmployeeCD = M.従業員CD    
+ ORDER BY 2 desc 
+
+    </select> 
 </mapper>

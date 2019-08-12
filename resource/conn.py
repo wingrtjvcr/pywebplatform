@@ -204,7 +204,7 @@ class DBHelper:
    
     def getSQL(self,sqlid, sqltype,pars):
         path = os.path.split(os.path.realpath(__file__))[0] + '/sqlmap/'+self.mapname+'.xml'
-        soup = BeautifulSoup(open(path),"html.parser")
+        soup = BeautifulSoup(open(path,encoding='utf-8'),"html.parser")
         strsql=""
         selsqls = soup.find_all(sqltype)
         for selsql_El in selsqls:
@@ -226,7 +226,7 @@ class DBHelper:
             keyinsql1 = "#{"+key + "}"
             keyinsql2 = "${"+key + "}"
             strsql = strsql.replace(keyinsql1, str("'"+self.sql_filter(pars[key])+"'")).replace(keyinsql2, str(pars[key]))
-        return strsql.replace('\n','').strip().replace('      ',' ').replace('    ',' ')
+        return strsql.replace('\n','').strip().replace('      ',' ').replace('    ',' ').replace('\t',' ')
 
 
     # global db

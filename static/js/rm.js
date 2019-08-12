@@ -1,7 +1,7 @@
 var dataIssue;
 var dataUser;
 var uname = parent.$(".user.active").html();
-uname='limingze'
+// uname='limingze'
 var noneid='900000001_143';
 var nonename='#0：予定なし　ー　900000001_(間接)間接';
 
@@ -32,11 +32,34 @@ $('#ticketsel1').trigger("click");
 // コントローラーの表示設定
 conshow();
 
-
 $('#select_pj').select2();
 $('#select_wt').select2();
 $('#select_issue').select2();
 
+ui.loading('hide');
+// ui.loading();
+_url='../cgi/workdata?loginid='+uname;
+$.ajax({
+      type: 'get',
+      url: _url,
+      success: function(data){ 
+        if(data.Code!=1) {
+          ui.loading('hide');
+          // toastr.error('エラー発生');
+          return 
+        }
+       $('#home').html(data);
+       ui.loading('hide');
+    }
+});
+
+// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+// ※※※※※※※※※※※※※※※※※※※　　Click Event　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+
+// QCD TAGをクリック
+$('a[href="#qcd"]').click(function(){
+  // alert('qcd click');
 ui.loading();
 _url='../getIssueList?loginid='+uname;
 $.ajax({
@@ -69,10 +92,36 @@ $.ajax({
     }
 });
 
-// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
-// ※※※※※※※※※※※※※※※※※※※　　Click Event　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
-// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+});
 
+// TODO TAGをクリック
+$('a[href="#todo"]').click(function(){
+  ui.loading();
+  _url='../getTodo?loginid='+uname;
+  $.ajax({
+        type: 'get',
+        url: _url,
+        success: function(data){ 
+          if(data.Code!=1) {
+            ui.loading('hide');
+            toastr.error('エラー発生');
+            return 
+          }
+          data=data.Table0;
+        var t='<tr><td>#</td><td>Project</td><td>Tracker</td><td>Status</td><td>Subject</td></tr>';
+        var _row='<tr><td><a href="http://redmine.trechina.cn/issues/{0}" target="_blank" >{0}</a></td><td>{1}</td><td>{2}</td><td>{3}</td><td><a href="http://redmine.trechina.cn/issues/{0}" target="_blank" >{4}</a></td></tr>';
+        var datarow='';
+        //  チケットのデータを入れる
+        $(data).each(function (i, o) {
+          
+          datarow=datarow+String.format(_row,o.issueid,o.pjname,o.tname,o.sname,o.subject);
+        });
+        $('#todo').html('<table class="table table-striped table-condensed">'+t+datarow+'</table>');
+
+          ui.loading('hide');
+      }
+  });
+});
 
 // 「登録区分」クリック
 $('input[name="ticketsel"]').click(function(){
@@ -317,37 +366,7 @@ charactersChange = function(ele){
 }
 })
 
-function getTodo(){
-ui.loading();
-_url='../getTodo?loginid='+uname;
-$.ajax({
-      type: 'get',
-      url: _url,
-      success: function(data){ 
-        if(data.Code!=1) {
-          ui.loading('hide');
-          toastr.error('エラー発生');
-          return 
-        }
-        data=data.Table0;
-      var t='<tr><td>#</td><td>Project</td><td>Tracker</td><td>Status</td><td>Subject</td></tr>';
-      var _row='<tr><td><a href="http://redmine.trechina.cn/issues/{0}" target="_blank" >{0}</a></td><td>{1}</td><td>{2}</td><td>{3}</td><td><a href="http://redmine.trechina.cn/issues/{0}" target="_blank" >{4}</a></td></tr>';
-      var datarow='';
-       //  チケットのデータを入れる
-       $(data).each(function (i, o) {
-         
-        datarow=datarow+String.format(_row,o.issueid,o.pjname,o.tname,o.sname,o.subject);
-       });
-       $('#todo').html('<table class="table table-striped table-condensed">'+t+datarow+'</table>');
 
-        ui.loading('hide');
-    }
-});
-}
-
-function getworkinfo(){
-  
-}
 
 // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※　　共通関数       ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※

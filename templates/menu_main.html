@@ -13,7 +13,6 @@
     <script src="static/tools/datetimepicker/bootstrap-datetimepicker.ja.js"></script>
     <script src="static/tools/ui.js/ui.min.js"></script>
     <script src="static/tools/toastr/toastr.min.js"></script>
-    <script src="static/tools/toastr/toastr.min.js"></script>
     <script src="static/js/common.js"></script>
 
     <link rel="stylesheet" href="static/tools/bootstrap-3.3.7-dist/css/bootstrap.min.css" />
@@ -22,6 +21,7 @@
     <link rel="stylesheet" href="static/tools/datetimepicker/bootstrap-datetimepicker.min.css" />
     <link rel="stylesheet" href="static/tools/radiobox/style.css" />
     <link rel="stylesheet" href="static/tools/ui.js/ui.min.css" />
+    <link rel="stylesheet" href="static/tools/toastr/toastr.min.css" />
     
     <!-- 業務JS -->
     <script src="static/js/rm.js"></script>
@@ -30,13 +30,13 @@
   <body>
       <div id="page-loader" class="fade in"><span class="spinner"></span></div>
     <ul id="myTab" class="nav nav-tabs">
-      <li>
+      <li class="active">
         <a href="#home" data-toggle="tab">近況</a>
       </li>
       <li>
         <a href="#todo" data-toggle="tab" onclick="getTodo()">Todo</a>
       </li>
-      <li class="active">
+      <li>
         <a href="#qcd" data-toggle="tab">QCD</a>
       </li>
       <li>
@@ -72,7 +72,7 @@
       </li>
     </ul>
     <div id="myTabContent" class="tab-content" style="padding:10px">
-      <div class="tab-pane fade" id="home">
+      <div class="tab-pane fade active" id="home">
         <!-- <p class="text-center" style="margin-top: 100px">Loading...</p> -->
       </div>
       <div class="tab-pane fade" id="edu">
@@ -81,7 +81,7 @@
       <div class="tab-pane fade" id="release">
         <iframe src="https://calendar.google.com/calendar/embed?src=vs1g2ujb7p1r456b62qs834gcc%40group.calendar.google.com&ctz=Asia%2FShanghai" style="border-width:0" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
       </div>
-      <div class="tab-pane fade in active" id="qcd">
+      <div class="tab-pane fade in" id="qcd">
         <div class="form-horizontal" style="width:95%">
           <div class="form-group">
             <label for="inputproject" class="col-xs-3 control-label">登録区分</label>
