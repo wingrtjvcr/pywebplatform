@@ -1,0 +1,92 @@
+Traceback (most recent call last):
+  File "run.py", line 6, in <module>
+    from src.rm import bp_rm
+  File "/tmp/pywebplatform/src/rm.py", line 13, in <module>
+    dsn = 'DRIVER={%s};SERVER=172.17.1.13;DATABASE=QCDDB;UID=PMOread;PWD=PMOread' % pyodbc.drivers()[1]
+IndexError: list index out of range
+[2019-08-12 17:25:25 +0800] [18622] [INFO] Goin' Fast @ http://127.0.0.1:8000
+[2019-08-12 17:25:25 +0800] [18622] [INFO] Starting worker [18622]
+[2019-08-12 17:26:28 +0800] [18622] [INFO] Stopping worker [18622]
+[2019-08-12 17:26:28 +0800] [18622] [INFO] Server Stopped
+[2019-08-12 17:26:31 +0800] [20138] [INFO] Goin' Fast @ http://172.17.6.81:8000
+[2019-08-12 17:26:31 +0800] [20138] [INFO] Starting worker [20138]
+[2019-08-12 17:26:34 +0800] [20138] [INFO] Stopping worker [20138]
+[2019-08-12 17:26:34 +0800] [20138] [INFO] Server Stopped
+[2019-08-12 17:26:41 +0800] [20347] [INFO] Goin' Fast @ http://172.17.6.81:8000
+[2019-08-12 17:26:41 +0800] [20347] [INFO] Starting worker [20347]
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44652]: GET http://172.17.6.81:8000/rmindex  200 18339
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44653]: GET http://172.17.6.81:8000/static/tools/jquery-ui-1.12.1/external/jquery/jquery-3.3.1.min.js  200 86929
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44654]: GET http://172.17.6.81:8000/static/tools/bootstrap-3.3.7-dist/js/bootstrap.min.js  200 37051
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44655]: GET http://172.17.6.81:8000/static/tools/select2/select2.min.js  200 67751
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44656]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.js  200 101756
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44658]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.min.js  200 66953
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44659]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.ja.js  200 695
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44659]: GET http://172.17.6.81:8000/static/tools/bootstrap-3.3.7-dist/css/bootstrap.min.css  200 121205
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44653]: GET http://172.17.6.81:8000/static/tools/select2/select2.min.css  200 15276
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44654]: GET http://172.17.6.81:8000/static/tools/proressbar/css/style.css  200 4730
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44655]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.min.css  200 11284
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44658]: GET http://172.17.6.81:8000/static/tools/radiobox/style.css  200 1112
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44656]: GET http://172.17.6.81:8000/static/tools/ui.js/ui.min.css  200 3310
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44653]: GET http://172.17.6.81:8000/static/tools/ui.js/ui.min.js  200 2183
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44659]: GET http://172.17.6.81:8000/static/tools/toastr/toastr.min.css  200 6741
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44654]: GET http://172.17.6.81:8000/static/js/common.js  200 4044
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44658]: GET http://172.17.6.81:8000/static/tools/toastr/toastr.min.js  200 5544
+[2019-08-12 17:26:46 +0800] - (sanic.access)[INFO][172.17.6.81:44655]: GET http://172.17.6.81:8000/static/js/rm.js  200 13734
+
+###sql###:select i.id as issueid,p.name as pjname,t.name as tname,s.name as sname,i.subject from bitnami_redmine.issues  as i inner join bitnami_redmine.users  as u on i.assigned_to_id = u.id inner join bitnami_redmine.issue_statuses as s on i.status_id = s.id inner join bitnami_redmine.projects as p on i.project_id = p.id inner join bitnami_redmine.trackers as t on i.tracker_id = t.id where u.login = 'liqiang' and s.is_closed = 0 order by 1 desc
+
+[2019-08-12 17:26:53 +0800] - (sanic.access)[INFO][172.17.6.81:44662]: GET http://172.17.6.81:8000/getTodo?loginid=liqiang  200 1171
+
+###sql###:SELECT cv.value as pjid   ,pj.name as pjname   ,issues.id as issid   ,issues.subject   ,issues.status_id as statusid   ,ist.name as statusname   FROM projects pj INNER JOIN custom_values cv ON pj.id=cv.customized_id AND cv.custom_field_id=2 AND cv.`value`!='' INNER JOIN issues ON pj.id=issues.project_id AND issues.status_id in (2)   INNER JOIN issue_statuses  ist   ON ist.id=issues.status_id   INNER JOIN users ON issues.assigned_to_id=users.id AND users.login='liqiang'
+
+[2019-08-12 17:26:54 +0800] - (sanic.access)[INFO][172.17.6.81:44662]: GET http://172.17.6.81:8000/getIssueList?loginid=liqiang  200 24
+[2019-08-12 17:26:54 +0800] - (sanic.access)[INFO][172.17.6.81:44665]: GET http://172.17.6.81:8000/static/tools/proressbar/images/stripes.png  200 135
+
+###sql###:select i.id as issueid,p.name as pjname,t.name as tname,s.name as sname,i.subject from bitnami_redmine.issues  as i inner join bitnami_redmine.users  as u on i.assigned_to_id = u.id inner join bitnami_redmine.issue_statuses as s on i.status_id = s.id inner join bitnami_redmine.projects as p on i.project_id = p.id inner join bitnami_redmine.trackers as t on i.tracker_id = t.id where u.login = 'liqiang' and s.is_closed = 0 order by 1 desc
+
+[2019-08-12 17:27:00 +0800] - (sanic.access)[INFO][172.17.6.81:44666]: GET http://172.17.6.81:8000/getTodo?loginid=liqiang  200 1171
+
+###sql###:SELECT cv.value as pjid   ,pj.name as pjname   ,issues.id as issid   ,issues.subject   ,issues.status_id as statusid   ,ist.name as statusname   FROM projects pj INNER JOIN custom_values cv ON pj.id=cv.customized_id AND cv.custom_field_id=2 AND cv.`value`!='' INNER JOIN issues ON pj.id=issues.project_id AND issues.status_id in (2)   INNER JOIN issue_statuses  ist   ON ist.id=issues.status_id   INNER JOIN users ON issues.assigned_to_id=users.id AND users.login='liqiang'
+
+[2019-08-12 17:27:01 +0800] - (sanic.access)[INFO][172.17.6.81:44666]: GET http://172.17.6.81:8000/getIssueList?loginid=liqiang  200 24
+
+###sql###:select i.id as issueid,p.name as pjname,t.name as tname,s.name as sname,i.subject from bitnami_redmine.issues  as i inner join bitnami_redmine.users  as u on i.assigned_to_id = u.id inner join bitnami_redmine.issue_statuses as s on i.status_id = s.id inner join bitnami_redmine.projects as p on i.project_id = p.id inner join bitnami_redmine.trackers as t on i.tracker_id = t.id where u.login = 'liqiang' and s.is_closed = 0 order by 1 desc
+
+[2019-08-12 17:27:09 +0800] - (sanic.access)[INFO][172.17.6.81:44669]: GET http://172.17.6.81:8000/getTodo?loginid=liqiang  200 1171
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44671]: GET http://172.17.6.81:8000/rmindex  200 18339
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44672]: GET http://172.17.6.81:8000/static/tools/jquery-ui-1.12.1/external/jquery/jquery-3.3.1.min.js  200 86929
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44674]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.js  200 101756
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44675]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.min.js  200 66953
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44676]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.ja.js  200 695
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44673]: GET http://172.17.6.81:8000/static/tools/select2/select2.min.js  200 67751
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44677]: GET http://172.17.6.81:8000/static/tools/bootstrap-3.3.7-dist/js/bootstrap.min.js  200 37051
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44672]: GET http://172.17.6.81:8000/static/tools/bootstrap-3.3.7-dist/css/bootstrap.min.css  200 121205
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44676]: GET http://172.17.6.81:8000/static/tools/select2/select2.min.css  200 15276
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44675]: GET http://172.17.6.81:8000/static/tools/proressbar/css/style.css  200 4730
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44674]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.min.css  200 11284
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44676]: GET http://172.17.6.81:8000/static/tools/ui.js/ui.min.css  200 3310
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44677]: GET http://172.17.6.81:8000/static/tools/radiobox/style.css  200 1112
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44675]: GET http://172.17.6.81:8000/static/tools/toastr/toastr.min.css  200 6741
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44673]: GET http://172.17.6.81:8000/static/tools/ui.js/ui.min.js  200 2183
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44674]: GET http://172.17.6.81:8000/static/tools/toastr/toastr.min.js  200 5544
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44672]: GET http://172.17.6.81:8000/static/js/common.js  200 4044
+[2019-08-12 17:27:12 +0800] - (sanic.access)[INFO][172.17.6.81:44677]: GET http://172.17.6.81:8000/static/js/rm.js  200 13734
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44680]: GET http://172.17.6.81:8000/static/tools/bootstrap-3.3.7-dist/css/bootstrap.min.css  304 0
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44681]: GET http://172.17.6.81:8000/static/tools/select2/select2.min.css  304 0
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44682]: GET http://172.17.6.81:8000/static/tools/proressbar/css/style.css  304 0
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44683]: GET http://172.17.6.81:8000/static/tools/datetimepicker/bootstrap-datetimepicker.min.css  304 0
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44684]: GET http://172.17.6.81:8000/static/tools/radiobox/style.css  304 0
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44685]: GET http://172.17.6.81:8000/static/tools/ui.js/ui.min.css  304 0
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44680]: GET http://172.17.6.81:8000/static/tools/toastr/toastr.min.css  304 0
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44680]: GET http://172.17.6.81:8000/static/tools/toastr/toastr.js.map  200 135
+[2019-08-12 17:27:28 +0800] - (sanic.access)[INFO][172.17.6.81:44680]: GET http://172.17.6.81:8000/static/tools/bootstrap-3.3.7-dist/css/bootstrap.min.css.map  200 542194
+
+###sql###:SELECT cv.value as pjid   ,pj.name as pjname   ,issues.id as issid   ,issues.subject   ,issues.status_id as statusid   ,ist.name as statusname   FROM projects pj INNER JOIN custom_values cv ON pj.id=cv.customized_id AND cv.custom_field_id=2 AND cv.`value`!='' INNER JOIN issues ON pj.id=issues.project_id AND issues.status_id in (2)   INNER JOIN issue_statuses  ist   ON ist.id=issues.status_id   INNER JOIN users ON issues.assigned_to_id=users.id AND users.login='liqiang'
+
+[2019-08-12 17:30:40 +0800] - (sanic.access)[INFO][172.17.6.81:44687]: GET http://172.17.6.81:8000/getIssueList?loginid=liqiang  200 24
+[2019-08-12 17:30:40 +0800] - (sanic.access)[INFO][172.17.6.81:44689]: GET http://172.17.6.81:8000/static/tools/proressbar/images/stripes.png  200 135
+[2019-08-12 17:32:56 +0800] [20347] [INFO] Stopping worker [20347]
+[2019-08-12 17:32:56 +0800] [20347] [INFO] Server Stopped
+['ODBC Driver 13 for SQL Server', 'ODBC Driver 17 for SQL Server']
+[2019-08-19 17:07:45 +0800] [27937] [INFO] Goin' Fast @ http://172.17.6.81:8000
+[2019-08-19 17:07:45 +0800] [27937] [INFO] Starting worker [27937]

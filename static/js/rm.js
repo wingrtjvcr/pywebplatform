@@ -1,9 +1,10 @@
 var dataIssue;
 var dataUser;
 var uname = parent.$(".user.active").html();
-// uname='limingze'
+// uname='liqiang'
 var noneid='900000001_143';
 var nonename='#0：予定なし　ー　900000001_(間接)間接';
+var baseurl='../Apps/';
 
 // ※※※※※※※※※※※※※※※※※※※             ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※　　初期化　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -36,21 +37,31 @@ $('#select_pj').select2();
 $('#select_wt').select2();
 $('#select_issue').select2();
 
-ui.loading('hide');
-// ui.loading();
-_url='../cgi/workdata?loginid='+uname;
+// ui.loading('hide');
+ui.loading();
+// _url='../cgi/workdata?loginid='+uname;
+// $.ajax({
+//       type: 'get',
+//       url: _url,
+//       success: function(data){ 
+//         if(data.Code!=1) {
+//           ui.loading('hide');
+//           // toastr.error('エラー発生');
+//           return 
+//         }
+//        $('#home').html(data);
+//        ui.loading('hide');
+//     }
+// });
 $.ajax({
-      type: 'get',
-      url: _url,
-      success: function(data){ 
-        if(data.Code!=1) {
-          ui.loading('hide');
-          // toastr.error('エラー発生');
-          return 
-        }
-       $('#home').html(data);
-       ui.loading('hide');
-    }
+  type: 'POST',
+  url: '../cgi-bin/workdata',
+  data: { uname : uname },
+  success: function(result){ 
+    $("#home").html(result); 
+    ui.loading('hide');
+  
+  }
 });
 
 // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -61,7 +72,7 @@ $.ajax({
 $('a[href="#qcd"]').click(function(){
   // alert('qcd click');
 ui.loading();
-_url='../getIssueList?loginid='+uname;
+_url=baseurl+'getIssueList?loginid='+uname;
 $.ajax({
       type: 'get',
       url: _url,
@@ -97,7 +108,7 @@ $.ajax({
 // TODO TAGをクリック
 $('a[href="#todo"]').click(function(){
   ui.loading();
-  _url='../getTodo?loginid='+uname;
+  _url=baseurl+'getTodo?loginid='+uname;
   $.ajax({
         type: 'get',
         url: _url,
@@ -133,7 +144,7 @@ conshow();
 if(!ischk() && $("#select_pj option").length<=1){
 ui.loading();
 
-  _url='../getProject?loginid='+uname;
+  _url=baseurl+'getProject?loginid='+uname;
   $.ajax({
           type: 'get',
           url: _url,
@@ -210,16 +221,16 @@ else{
 // チケットありなしによって、PostUrlが異なる
 var _url='';
 if(ischk()){
-  _url='../insQCDandRM';
+  _url=baseurl+'insQCDandRM';
   if($("#select_issue").val()==noneid){
     wt=41;
-    _url='../insQCD';
+    _url=baseurl+'insQCD';
     pjid=$("#select_issue").val().split('_')[1];
   }
 
 }
 else
-  _url='../insQCD';
+  _url=baseurl+'insQCD';
   ui.loading();
       $.ajax({
       type: 'GET',
@@ -280,7 +291,7 @@ if($("#select_issue").val()==null)return;
       $('#tr_prog').show();
     }
     
-    _url='../getIssue?issueid='+issueid;
+    _url=baseurl+'getIssue?issueid='+issueid;
     $.ajax({
           type: 'get',
           url: _url,
@@ -321,7 +332,7 @@ if($("#select_issue").val()==null)return;
   var selpj=$("#select_pj").val();
   var pjcd=selpj.split('_')[0];
   var wt=selpj.split('_')[1];
-  _url='../getWorkType?wt='+wt;
+  _url=baseurl+'getWorkType?wt='+wt;
   $.ajax({
         type: 'get',
         url: _url,

@@ -10,7 +10,8 @@ import time
 
 db2 = DBHelper(__name__)
 bp_rm = Blueprint('bp_rm')
-dsn = 'DRIVER={%s};SERVER=172.17.1.13;DATABASE=QCDDB;UID=PMOread;PWD=PMOread' % pyodbc.drivers()[1]
+print(pyodbc.drivers())
+dsn = 'DRIVER=ODBC Driver 17 for SQL Server;SERVER=172.17.1.13;DATABASE=QCDDB;UID=PMOread;PWD=PMOread'
 
 @bp_rm.route("/getprjectme")
 async def getprjectme(request):
@@ -74,6 +75,7 @@ async def insQCD(request):
 # QCDシステム and RM 登録
 @bp_rm.route("/insQCDandRM",methods=['GET','POST'])
 async def insQCDandRM(request):
+    print('dsn')
     uname=request.args.get('uname')
     pjcode=request.args.get('pjcode')
     memo=request.args.get('memo')
@@ -87,6 +89,7 @@ async def insQCDandRM(request):
 
     # QCDシステムに登録
     # dsn = 'DRIVER={%s};SERVER=172.17.1.13;DATABASE=QCDDB;UID=PMOread;PWD=PMOread' % pyodbc.drivers()[1]
+    print(dsn)
     conn = await aioodbc.connect(dsn=dsn)
     cur = await conn.cursor()
     await cur.execute("SELECT top 1 pj.project_id,wk.work_id FROM projects pj INNER JOIN mst_work wk ON pj.work_type_id=wk.work_type_id WHERE pj.delete_flg = 0 and pj.project_cd =%s ORDER BY wk.work_cd DESC;" % pjcode)
