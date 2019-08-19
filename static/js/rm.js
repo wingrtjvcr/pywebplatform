@@ -1,7 +1,7 @@
 var dataIssue;
 var dataUser;
 var uname = parent.$(".user.active").html();
-// uname='liqiang'
+
 var noneid='900000001_143';
 var nonename='#0：予定なし　ー　900000001_(間接)間接';
 var baseurl='../Apps/';
@@ -143,7 +143,6 @@ conshow();
 // チケットなしかつselect_pjに課題データなしの場合は、課題データを読み込む
 if(!ischk() && $("#select_pj option").length<=1){
 ui.loading();
-
   _url=baseurl+'getProject?loginid='+uname;
   $.ajax({
           type: 'get',
