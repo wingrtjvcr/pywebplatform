@@ -1,7 +1,7 @@
 var dataIssue;
 var dataUser;
 var uname = parent.$(".user.active").html();
-
+// uname='liqiang'
 var noneid='900000001_143';
 var nonename='#0：予定なし　ー　900000001_(間接)間接';
 var baseurl='../Apps/';
@@ -11,6 +11,32 @@ var baseurl='../Apps/';
 // ※※※※※※※※※※※※※※※※※※※             ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
 $(function() {
+$.ajaxSetup({
+    beforeSend:function(){
+      if (this.loader) {
+        ui.loading();
+       }
+    },
+    complete:function(){
+      if (this.loader) {
+        ui.loading('hide');
+      }
+    },
+    error:function(){
+
+    }
+
+})
+
+var request = function(url,method,param,loader,result){
+        $.ajax({
+          type:method,
+          url:url,
+          loader:loader,
+          data:param,
+          success:result 
+    })
+}
 
 // 日付コントローラーの初期化
 $("#date").datetimepicker({
@@ -26,66 +52,41 @@ autoclose:true,
 weekShow:true
 });
 $("#date").datetimepicker("setDate", new Date());
-
-
 // 初期状態はチケットありに設定
 $('#ticketsel1').trigger("click");
 // コントローラーの表示設定
 conshow();
-
 $('#select_pj').select2();
 $('#select_wt').select2();
 $('#select_issue').select2();
 
-// ui.loading('hide');
-ui.loading();
-// _url='../cgi/workdata?loginid='+uname;
-// $.ajax({
-//       type: 'get',
-//       url: _url,
-//       success: function(data){ 
-//         if(data.Code!=1) {
-//           ui.loading('hide');
-//           // toastr.error('エラー発生');
-//           return 
-//         }
-//        $('#home').html(data);
-//        ui.loading('hide');
-//     }
-// });
-$.ajax({
-  type: 'POST',
-  url: '../cgi-bin/workdata',
-  data: { uname : uname },
-  success: function(result){ 
-    $("#home").html(result); 
-    ui.loading('hide');
-  
-  }
-});
+request('../cgi-bin/workdata','POST',{ uname : uname },true,function(result){
+    let $html=$(result.split('<script>')[0]);
+    $html.find('tbody').html($(result.split('<script>')[0]).find('tbody tr').toArray().reverse());
+    $html.find('tbody tr:first').find('td:first').text("今日");
+    $html.find('tbody tr:first').next().find('td:first').text("昨日");
+    $html.find('tbody tr').each(function(){
+    var flg = $(this).children().eq(1).text();
+        if(flg=='出'){
+          $(this).children().eq(1).html('<span class="label label-primary">出</span>');
+        }else if(flg=='休'){
+          $(this).children().eq(1).html('<span class="label label-success">休</span>');
+        }else if(flg=='出張'){
+          $(this).children().eq(1).html('<span class="label label-info">出張</span>');
+        };
+    })
+   $("#home").html($html); 
+})
 
-// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
-// ※※※※※※※※※※※※※※※※※※※　　Click Event　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
-// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
-
-// QCD TAGをクリック
-$('a[href="#qcd"]').click(function(){
-  // alert('qcd click');
-ui.loading();
-_url=baseurl+'getIssueList?loginid='+uname;
-$.ajax({
-      type: 'get',
-      url: _url,
-      success: function(data){ 
-        if(data.Code!=1) {
-          ui.loading('hide');
+request(baseurl+'getIssueList','get',{loginid:uname},false,function(data){
+   if(data.Code!=1) {
           toastr.error('エラー発生');
           return 
         }
-        data=data.Table0;
+       data=data.Table0;
+       sessionStorage.setItem("QCD",JSON.stringify(data));
        var optionsIssue = new Array();
        var optionsProject = new Array();
-
         // 間接チケットを追加
        optionsIssue.push({id:noneid ,text: nonename});
        //  チケットのデータを入れる
@@ -98,11 +99,36 @@ $.ajax({
        $("#select_issue").select2({
            data: optionsIssue
        })
+ })
+// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+// ※※※※※※※※※※※※※※※※※※※　　Click Event　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+// ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
-        ui.loading('hide');
-    }
-});
-
+// QCD TAGをクリック
+$('a[href="#qcd"]').click(function(){
+_url=baseurl+'getIssueList';
+ request(_url,'get',{loginid:uname},true,function(data){
+   if(data.Code!=1) {
+          toastr.error('エラー発生');
+          return 
+        }
+       data=data.Table0;
+       sessionStorage.setItem("QCD",JSON.stringify(data));
+       var optionsIssue = new Array();
+       var optionsProject = new Array();
+        // 間接チケットを追加
+       optionsIssue.push({id:noneid ,text: nonename});
+       //  チケットのデータを入れる
+       $(data).each(function (i, o) {
+        optionsIssue.push({
+               id: o.pjid+'_'+o.issid,
+               text: '#'+o.issid+'：'+o.subject+' '+o.statusname +'　ー　'+o.pjname
+           });
+       });
+       $("#select_issue").select2({
+           data: optionsIssue
+       })
+ })
 });
 
 // TODO TAGをクリック
@@ -143,6 +169,7 @@ conshow();
 // チケットなしかつselect_pjに課題データなしの場合は、課題データを読み込む
 if(!ischk() && $("#select_pj option").length<=1){
 ui.loading();
+
   _url=baseurl+'getProject?loginid='+uname;
   $.ajax({
           type: 'get',

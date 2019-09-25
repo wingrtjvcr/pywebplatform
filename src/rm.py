@@ -72,6 +72,51 @@ async def insQCD(request):
     # return json('result')
     return json(result)
 
+@bp_rm.route("/resultQCD",methods=['GET','POST'])
+async def resultQCD(request):
+    uname=request.args.get('uname')
+    print(uname)
+    wkdate=request.args.get('wk_date')
+    print(wkdate)
+    loginifo=getEmployeeInfo(uname)
+    employeecd=loginifo['custom_fields'][0]['value']
+    print(employeecd)
+    pars={"disp_req":{"work_date":wkdate,"employee_cd":employeecd}}
+    url="http://10.2.1.171/system/api/PMRMS001"
+    result=com.postWSdata(url,pars)
+    return json(result)
+
+@bp_rm.route("/myWorkList",methods=['GET','POST'])
+async def myWorkList(request):
+    pars={"disp_req":{}}
+    currentprojectcd=request.args.get('currentprojectcd')
+    url="http://10.2.1.171/system/api/PMBMS012"
+    data=com.postWSdata(url,pars)
+    result=data['result']
+    for r in result:
+        if currentprojectcd.find(r['project_cd'])!=-1:
+            return json([r])
+    return json({"result":[]})
+
+@bp_rm.route("/myWorkType",methods=['GET','POST'])
+async def myWorkType(request):
+    pars={"disp_req":{}}
+    projectcd=request.args.get('projectcd')
+    url="http://10.2.1.171/system/api/PMBMS012"
+    data=com.postWSdata(url,pars);
+    result=data['result']
+    mywork=[d for d in result if d['project_cd'] == projectcd][0];
+    resultType=com.postWSdata('http://10.2.1.171/system/api/PMMSS003',{"disp_req":{"work_type_id":mywork['work_type_id']}})
+    resultType['id']=mywork['project_id'];
+    return json(resultType)
+
+@bp_rm.route("/workList",methods=['GET','POST'])
+async def workList(request):
+    pars={"disp_req":{}}
+    url="http://10.2.1.171/system/api/PMBMS012"
+    data=com.postWSdata(url,pars)
+    return json(data)
+
 # QCDシステム and RM 登録
 @bp_rm.route("/insQCDandRM",methods=['GET','POST'])
 async def insQCDandRM(request):
@@ -126,6 +171,59 @@ async def insQCDandRM(request):
     return json(result)
 
     
+@bp_rm.route("/newinsQCDandRM",methods=['GET','POST'])
+async def newinsQCDandRM(request):
+    uname=request.args.get('uname')
+    loginifo=getEmployeeInfo(uname)
+    employeecd=loginifo['custom_fields'][0]['value']
+    work_id=request.args.get('work_id')
+    project_id=request.args.get('project_id')
+    man_hour=request.args.get('man_hour')
+    remarks=request.args.get('remarks')
+    work_date=request.args.get('work_date')
+    pars={"regist_req":[{"employee_cd":int(employeecd),"man_hour":man_hour,"project_id":project_id,"remarks":remarks,"work_date":int(work_date),"work_detail_id":0,"work_id":work_id,"work_result_id":0,"upd_type_id":1}]}
+    print(pars)
+    url="http://10.2.1.171/system/api/PMRMS001"
+    # ★★ QCDシステムに反映 ★★
+    result=com.postWSdata(url,pars)
+    return json(result)
+
+@bp_rm.route("/editinsQCDandRM",methods=['GET','POST'])
+async def newinsQCDandRM(request):
+    uname=request.args.get('uname')
+    loginifo=getEmployeeInfo(uname)
+    employeecd=loginifo['custom_fields'][0]['value']
+    work_id=request.args.get('work_id')
+    project_id=request.args.get('project_id')
+    man_hour=request.args.get('man_hour')
+    remarks=request.args.get('remarks')
+    work_date=request.args.get('work_date')
+    work_result_id=request.args.get('work_result_id')
+    pars={"regist_req":[{"employee_cd":int(employeecd),"man_hour":man_hour,"project_id":project_id,"remarks":remarks,"work_date":int(work_date),"work_detail_id":0,"work_id":work_id,"work_result_id":int(work_result_id),"upd_type_id":2}]}
+    print(pars)
+    url="http://10.2.1.171/system/api/PMRMS001"
+    # ★★ QCDシステムに反映 ★★
+    result=com.postWSdata(url,pars)
+    return json(result)
+
+@bp_rm.route("/delQCDandRM",methods=['GET','POST'])
+async def delQCDandRM(request):
+    uname=request.args.get('uname')
+    loginifo=getEmployeeInfo(uname)
+    employeecd=loginifo['custom_fields'][0]['value']
+    work_id=request.args.get('work_id')
+    project_id=request.args.get('project_id')
+    man_hour=request.args.get('man_hour')
+    remarks=request.args.get('remarks')
+    work_result_id=request.args.get('work_result_id')
+    work_date=request.args.get('work_date')
+    pars={"regist_req":[{"employee_cd":int(employeecd),"man_hour":man_hour,"project_id":project_id,"remarks":remarks,"work_date":int(work_date),"work_detail_id":0,"work_id":work_id,"work_result_id":int(work_result_id),"upd_type_id":3}]}
+    print(pars)
+    url="http://10.2.1.171/system/api/PMRMS001"
+    # ★★ QCDシステムに反映 ★★
+    result=com.postWSdata(url,pars)
+    return json(result)
+
 @bp_rm.route("/getTodo",methods=['GET','POST'])
 async def getTodo(request):
      # ユーザーのログインid
