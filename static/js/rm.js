@@ -1,16 +1,18 @@
 var dataIssue;
 var dataUser;
-var uname = parent.$(".user.active").html();
-// uname='liqiang'
+// var uname = parent.$(".user.active").html();
+var uname='limingze'
 var noneid='900000001_143';
-var nonename='#0：予定なし　ー　900000001_(間接)間接';
-var baseurl='../Apps/';
+var nonename='#0：チケットなし　ー　900000001_(間接)間接';
+// var baseurl='../Apps/';
+var baseurl='';
 
 // ※※※※※※※※※※※※※※※※※※※             ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※　　初期化　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※             ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
 $(function() {
+  ui.loading('hide');
 $.ajaxSetup({
     beforeSend:function(){
       if (this.loader) {
@@ -60,23 +62,23 @@ $('#select_pj').select2();
 $('#select_wt').select2();
 $('#select_issue').select2();
 
-request('../cgi-bin/workdata','POST',{ uname : uname },true,function(result){
-    let $html=$(result.split('<script>')[0]);
-    $html.find('tbody').html($(result.split('<script>')[0]).find('tbody tr').toArray().reverse());
-    $html.find('tbody tr:first').find('td:first').text("今日");
-    $html.find('tbody tr:first').next().find('td:first').text("昨日");
-    $html.find('tbody tr').each(function(){
-    var flg = $(this).children().eq(1).text();
-        if(flg=='出'){
-          $(this).children().eq(1).html('<span class="label label-primary">出</span>');
-        }else if(flg=='休'){
-          $(this).children().eq(1).html('<span class="label label-success">休</span>');
-        }else if(flg=='出張'){
-          $(this).children().eq(1).html('<span class="label label-info">出張</span>');
-        };
-    })
-   $("#home").html($html); 
-})
+// request('../cgi-bin/workdata','POST',{ uname : uname },true,function(result){
+//     let $html=$(result.split('<script>')[0]);
+//     $html.find('tbody').html($(result.split('<script>')[0]).find('tbody tr').toArray().reverse());
+//     $html.find('tbody tr:first').find('td:first').text("今日");
+//     $html.find('tbody tr:first').next().find('td:first').text("昨日");
+//     $html.find('tbody tr').each(function(){
+//     var flg = $(this).children().eq(1).text();
+//         if(flg=='出'){
+//           $(this).children().eq(1).html('<span class="label label-primary">出</span>');
+//         }else if(flg=='休'){
+//           $(this).children().eq(1).html('<span class="label label-success">休</span>');
+//         }else if(flg=='出張'){
+//           $(this).children().eq(1).html('<span class="label label-info">出張</span>');
+//         };
+//     })
+//    $("#home").html($html); 
+// })
 
 request(baseurl+'getIssueList','get',{loginid:uname},false,function(data){
    if(data.Code!=1) {
@@ -104,7 +106,9 @@ request(baseurl+'getIssueList','get',{loginid:uname},false,function(data){
 // ※※※※※※※※※※※※※※※※※※※　　Click Event　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
-// QCD TAGをクリック
+/**
+ * QCD TAGをクリック
+ */
 $('a[href="#qcd"]').click(function(){
 _url=baseurl+'getIssueList';
  request(_url,'get',{loginid:uname},true,function(data){
@@ -194,7 +198,10 @@ ui.loading();
 }
 
 });
-// 「登録」クリック
+
+/**
+ * 「登録」クリック
+ */
 $("#btnAddJS").click(function(){
 if($("#select_issue").val()==null && $("#select_pj").val()==null){
   toastr.warning('正しく入力してください');
@@ -231,7 +238,7 @@ if($("#select_wt").val()!=null ){
 
 // チケットありなしによって、必要データが異なる
 if(ischk()){
-  if(uname == "" || pjcode == "" || memo == "" || wkhour == ""){
+  if(uname == "" || pjcode == "" || memo == "" || wt=="" || wkhour == ""){
       toastr.warning('正しく入力してください');
       $("#btnAddJS").removeAttr("disabled");
       return false;
@@ -291,7 +298,12 @@ else
 });
 
 });
-// 「進捗」クリック
+
+
+
+/**
+ * 「進捗」クリック
+ */
 $("input[type=radio]").click(function(){
 var p=$(this).next();
 checkp(p.attr('for'));
@@ -301,19 +313,30 @@ checkp(p.attr('for'));
 // ※※※※※※※※※※※※※※※※※※※　　Change Event  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
-// 「チケット」変更
-  $("#select_issue").on("change",function(e){
+
+/**
+ * 「チケット」変更
+ */
+$("#select_issue").on("change",function(e){
 if($("#select_issue").val()==null)return;
+    ui.loading();
+    var pjcd=$("#select_issue").val().split('_')[0];
     var issueid=$("#select_issue").val().split('_')[1];
     $('#eh_time').html('');
     $('#sh_time').html('');
     $('#lab_time').html('');
     //　間接課題の場合はチケットとしての情報を非表示
     if($('#select_issue').val()==noneid){
+      // 進捗を0に
       checkp('p0');
+      // 進捗を非表示
       $('#tr_prog').hide();
+      // 作業のデータを読み込む
+      loadWorktypelist(pjcd);
+      ui.loading('hide');
       return;
     }else{
+      // 進捗を表示
       $('#tr_prog').show();
     }
     
@@ -321,6 +344,7 @@ if($("#select_issue").val()==null)return;
     $.ajax({
           type: 'get',
           url: _url,
+          aysnc:false,
           success: function(data){ 
             var issue=data.issue;
 
@@ -329,29 +353,31 @@ if($("#select_issue").val()==null)return;
             var pid='p'+done_ratio;
             checkp(pid);
 
-            // 消費時間
+            // 実績時間
             total_spent_hours=issue['total_spent_hours'];
             // 推定時間
             total_estimated_hours=issue['total_estimated_hours'];
 
-            var eh;
+            var eh=total_spent_hours;
+            var teh=total_estimated_hours;
 
-            $('#sh_time').html(total_spent_hours);
-            if(total_estimated_hours==undefined){
-              eh="";
-              $('#lab_time').html('（消費時間）');
-            }else{
-              eh=total_estimated_hours;
-              $('#eh_time').html('/'+eh);
-              $('#lab_time').html('（消費時間/推定時間）');
+            $('#sh_time').html('実績時間:'+eh+'(H)&nbsp;');
+            if(total_estimated_hours!=undefined){
+              $('#eh_time').html('/ 推定時間:'+teh+'(H)');
             }
 
+            // 作業のデータを読み込む
+            loadWorktypelist(pjcd);
+         
+            ui.loading('hide');
 
         }
   });
   
 });
-// 「課題」変更
+/**
+ * 「課題」変更
+ */
   $("#select_pj").on("change",function(e){
 　　			console.log(e);
   if($("#select_pj").val()==null)return;
@@ -382,7 +408,9 @@ if($("#select_issue").val()==null)return;
       });
   });
 
-// 全角数字を半角数字に変換
+/**
+ * 全角数字を半角数字に変換
+ */
 $(".js-characters-change").blur(function(){
   charactersChange($(this));
 });
@@ -409,9 +437,37 @@ charactersChange = function(ele){
 // ※※※※※※※※※※※※※※※※※※※　　共通関数       ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
+/**
+ * 「作業」データを読み込む
+ */
+function loadWorktypelist(pjcd){
+  _url=baseurl+'getWorktypelist?pjcd='+pjcd;
+  $.ajax({
+        type: 'get',
+        url: _url,
+        aysnc:false,
+        success: function(data){
+          $("#select_wt").empty();
+          $("#select_wt").select2("val", ""); 
+          var options = new Array();
+          // data=data.result;
+          $(data).each(function (i, o) {
+            options.push({
+                  id: o[0],
+                  text: o[1]+'_'+o[2]
+              });
+          });
+          $("#select_wt").select2({
+              data: options
+          })
+        }
 
+      });
+}
 
-// コントローラーの入力内容をクリア
+/**
+ * コントローラーの入力内容をクリア
+ */
 function clearConValue(){
 // コメント
 $("#inputmemo").val('');
@@ -429,13 +485,19 @@ checkp('p0');
 $('#eh_time').html('');
 $('#sh_time').html('');
 }  
-// チケットありなし
+
+/**
+ * チケットありなし判断
+ */
 function ischk(){
 // チケットありなし
 return $("#ticketsel1").is(":checked");
 }
 var _done;
-// チェックにより進捗率を変更
+
+/**
+ * 進捗率変更
+ */
 function checkp(pid){
 // $('#'+pid).attr("checked", true);
 $('#prog-bar').attr('class','');
@@ -445,7 +507,9 @@ _done=pid.split('p')[1];
 // alert($('input[name="progress"]:checked').val());
 }
 
-// 画面各コントローラーの表示非表示
+/**
+ * 画面各コントローラーの表示非表示
+ */
 function conshow(){
 $('#inputmemo').val('');
 $('#inputtime').val('');
@@ -456,7 +520,7 @@ $('#lab_time').html('');
 if(ischk()){
   $('#tr_pj').hide();
   $('#tr_date').hide();
-  $('#tr_wt').hide();
+  // $('#tr_wt').hide();
 
   $('#tr_issue').show();
   $('#tr_prog').show();
@@ -466,7 +530,7 @@ if(ischk()){
 
   $('#tr_pj').show();
   $('#tr_date').show();
-  $('#tr_wt').show();
+  // $('#tr_wt').show();
 }
 }
 

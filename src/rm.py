@@ -11,7 +11,8 @@ import time
 db2 = DBHelper(__name__)
 bp_rm = Blueprint('bp_rm')
 print(pyodbc.drivers())
-dsn = 'DRIVER=ODBC Driver 17 for SQL Server;SERVER=172.17.1.13;DATABASE=QCDDB;UID=PMOread;PWD=PMOread'
+# dsn = 'DRIVER=ODBC Driver 17 for SQL Server;SERVER=172.17.1.13;DATABASE=QCDDB;UID=PMOread;PWD=PMOread'
+dsn = 'DRIVER={%s};SERVER=172.20.1.15;DATABASE=QCDDB;UID=read;PWD=' % pyodbc.drivers()[1]
 
 @bp_rm.route("/getprjectme")
 async def getprjectme(request):
@@ -117,16 +118,30 @@ async def workList(request):
     data=com.postWSdata(url,pars)
     return json(data)
 
+
+@bp_rm.route("/getWorktypelist",methods=['GET','POST'])
+async def getWorktypelist(request):
+    pjcode=request.args.get('pjcd')
+    print('dsn')
+    conn = await aioodbc.connect(dsn=dsn)
+    cur = await conn.cursor()
+    await cur.execute("SELECT wk.* FROM projects pj INNER JOIN mst_work wk ON pj.work_type_id=wk.work_type_id WHERE pj.delete_flg = 0 and pj.project_cd =%s ORDER BY wk.work_cd ASC;" % pjcode)
+    rows = await cur.fetchall()
+    await cur.close()
+    await conn.close()
+
+    return json(rows)    
+
 # QCDシステム and RM 登録
 @bp_rm.route("/insQCDandRM",methods=['GET','POST'])
 async def insQCDandRM(request):
-    print('dsn')
     uname=request.args.get('uname')
     pjcode=request.args.get('pjcode')
     memo=request.args.get('memo')
     wkhour=request.args.get('wkhour')
     issueid=request.args.get('issueid')
     done=request.args.get('done')
+    wkid=request.args.get('wt')
 
     loginifo=getEmployeeInfo(uname)
     employeecd=loginifo['custom_fields'][0]['value']
@@ -140,7 +155,6 @@ async def insQCDandRM(request):
     await cur.execute("SELECT top 1 pj.project_id,wk.work_id FROM projects pj INNER JOIN mst_work wk ON pj.work_type_id=wk.work_type_id WHERE pj.delete_flg = 0 and pj.project_cd =%s ORDER BY wk.work_cd DESC;" % pjcode)
     rows = await cur.fetchall()
     pjid=rows[0][0]
-    wkid=rows[0][1]
     pars={"regist_req":[{"employee_cd":employeecd,"man_hour":wkhour,"project_id":pjid,"remarks":memo,"work_date":datetime.datetime.now().strftime('%Y%m%d'),"work_detail_id":0,"work_id":wkid,"work_result_id":0,"upd_type_id":1}]}
     url="http://10.2.1.171/system/api/PMRMS001"
     # ★★ QCDシステムに反映 ★★
@@ -189,7 +203,7 @@ async def newinsQCDandRM(request):
     return json(result)
 
 @bp_rm.route("/editinsQCDandRM",methods=['GET','POST'])
-async def newinsQCDandRM(request):
+async def newinsQCDandR2(request):
     uname=request.args.get('uname')
     loginifo=getEmployeeInfo(uname)
     employeecd=loginifo['custom_fields'][0]['value']
