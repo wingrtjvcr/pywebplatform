@@ -3,7 +3,7 @@ var dataUser;
 // var uname = parent.$(".user.active").html();
 var uname='limingze'
 var noneid='900000001_143';
-var nonename='#0：チケットなし　ー　900000001_(間接)間接';
+var nonename='■■■■■900000001_(間接)間接■■■■■';
 // var baseurl='../Apps/';
 var baseurl='';
 
@@ -12,6 +12,7 @@ var baseurl='';
 // ※※※※※※※※※※※※※※※※※※※             ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 
 $(function() {
+  $("#img1").suspensionTips({"content": "チケットがない？　　　 　　　　①Projectに課題番号を設定された？②チケットの状態は「進捗中」？", position:"top"});
   ui.loading('hide');
 $.ajaxSetup({
     beforeSend:function(){
@@ -81,26 +82,61 @@ $('#select_issue').select2();
 // })
 
 request(baseurl+'getIssueList','get',{loginid:uname},false,function(data){
-   if(data.Code!=1) {
+      if(data.Code!=1) {
           toastr.error('エラー発生');
           return 
         }
-       data=data.Table0;
-       sessionStorage.setItem("QCD",JSON.stringify(data));
-       var optionsIssue = new Array();
-       var optionsProject = new Array();
-        // 間接チケットを追加
-       optionsIssue.push({id:noneid ,text: nonename});
-       //  チケットのデータを入れる
-       $(data).each(function (i, o) {
-        optionsIssue.push({
-               id: o.pjid+'_'+o.issid,
-               text: '#'+o.issid+'：'+o.subject+' '+o.statusname +'　ー　'+o.pjname
-           });
-       });
-       $("#select_issue").select2({
-           data: optionsIssue
+      data=data.Table0;
+      sessionStorage.setItem("QCD",JSON.stringify(data));
+      var optionsProject = new Array();
+
+      var optionsIssue = new Array();
+      optionsIssue.push({id:noneid ,text: nonename});
+      $("#select_issue").select2({
+       data: optionsIssue
        })
+      // DBデータをJsonグループにする
+      var arr = data;
+      var map = [],dest = [],res=[];
+      for(var i = 0; i < arr.length; i++) {
+        var ai = arr[i];
+        var childrenArr =[];
+        var children = {};
+        for(var j = 0; j < arr.length; j++) {
+          var dj = arr[j];
+          if(ai.pjname == dj.pjname){
+            var tempchildren = {};
+            tempchildren.id = dj.pjid+'_'+dj.issid;
+            tempchildren.text = '#'+dj.issid+'：'+dj.subject;
+            childrenArr.push(tempchildren);
+          }
+        }
+        if(res.length>0){
+            var  flag = true;
+          for(var j=0;j<res.length;j++ ){
+          var tempPjname = res[j].text;
+            if(tempPjname == ai.pjname ){
+              flag =false;
+              break;
+            }
+          }
+          if(flag){
+            children.text = ai.pjname;
+              children.children = childrenArr;
+              res.push(children);
+          }
+        }else{
+          children.text = ai.pjname;
+          children.children = childrenArr;
+          res.push(children);
+        }
+      }
+      console.log(res);
+
+      // 転換後のデータをバインド
+      $("#select_issue").select2({
+          data: res
+      });
  })
 // ※※※※※※※※※※※※※※※※※※※                  ※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 // ※※※※※※※※※※※※※※※※※※※　　Click Event　　※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -118,20 +154,20 @@ _url=baseurl+'getIssueList';
         }
        data=data.Table0;
        sessionStorage.setItem("QCD",JSON.stringify(data));
-       var optionsIssue = new Array();
-       var optionsProject = new Array();
-        // 間接チケットを追加
-       optionsIssue.push({id:noneid ,text: nonename});
+      //  var optionsIssue = new Array();
+      //  var optionsProject = new Array();
+      // 間接チケットを追加
+      //  optionsIssue.push({id:noneid ,text: nonename});
        //  チケットのデータを入れる
-       $(data).each(function (i, o) {
-        optionsIssue.push({
-               id: o.pjid+'_'+o.issid,
-               text: '#'+o.issid+'：'+o.subject+' '+o.statusname +'　ー　'+o.pjname
-           });
-       });
-       $("#select_issue").select2({
-           data: optionsIssue
-       })
+      //  $(data).each(function (i, o) {
+      //   optionsIssue.push({
+      //          id: o.pjid+'_'+o.issid,
+      //          text: '#'+o.issid+'：'+o.subject+' '+o.statusname +'　ー　'+o.pjname
+      //      });
+      //  });
+      //  $("#select_issue").select2({
+      //      data: optionsIssue
+      //  })
  })
 });
 

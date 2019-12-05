@@ -13,6 +13,7 @@
     <script src="static/tools/datetimepicker/bootstrap-datetimepicker.ja.js"></script>
     <script src="static/tools/ui.js/ui.min.js"></script>
     <script src="static/tools/toastr/toastr.min.js"></script>
+    <script src="static/tools/tips/test.js?ew"></script>
     <script src="static/js/common.js"></script>
 
     <link rel="stylesheet" href="static/tools/bootstrap-3.3.7-dist/css/bootstrap.min.css" />
@@ -22,6 +23,7 @@
     <link rel="stylesheet" href="static/tools/radiobox/style.css" />
     <link rel="stylesheet" href="static/tools/ui.js/ui.min.css" />
     <link rel="stylesheet" href="static/tools/toastr/toastr.min.css" />
+    <link rel="stylesheet" href="static/tools/tips/test.css" />
     
     <!-- 業務JS -->
     <script src="static/js/rm.js"></script>
@@ -97,11 +99,13 @@
               <div class="label_box">
                 <label>
                         <input type="radio" name="ticketsel" id='ticketsel1'>
-                        <div style="cursor:pointer;">チケットあり</div>
+                        <!-- <div style="cursor:pointer;">チケットあり</div> -->
+                        <div style="cursor:pointer;">チケット&QCD</div>
                  </label>
                 <label>
                         <input type="radio" name="ticketsel" id='ticketsel2'>
-                        <div style="cursor:pointer;">チケットなし</div>
+                        <!-- <div style="cursor:pointer;">チケットなし</div> -->
+                        <div style="cursor:pointer;">QCDのみ</div>
                 </label>
             </div>
             </div>
@@ -123,9 +127,12 @@
           <div class="form-group" id='tr_issue'>
             <label for="inputissue" class="col-xs-3 control-label">チケット</label>
             <div class="col-xs-8">
-              <select class="js-example-basic-single form-control" id="select_issue" style="width: 100%">
-                <option value=""></option>
-              </select>
+              <div class="col-xs-6" style="padding-left:0px;">
+                <select class="js-example-basic-single form-control" id="select_issue" style="width:100%">
+                  <option value=""></option>
+                </select>
+              </div>
+              <div class="col-xs-2"><img id="img1" src="static/tools/tips/question.png" height="24" width="24" /></div>
             </div>
           </div>
           <div class="form-group" id='tr_prog'>
